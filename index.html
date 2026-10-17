@@ -2793,6 +2793,13 @@ body:has(#app.narrow) #frSkip .s{display:none}
   font:400 13px/1 var(--fh);letter-spacing:1px;box-shadow:0 3px 0 #b8336f,0 6px 14px #0006}
 #bstage.tapme .bsbub:hover::after{background:#ff7dba}
 #info.coachbar.frtap .ct::after{content:"OK";display:inline-block;margin-left:8px;padding:3px 10px;border-radius:999px;background:#ff5fa8;color:#fff;font:400 11px/1 var(--fh);letter-spacing:1px;vertical-align:middle}
+#llscr.frtap .llsayt::after{content:"OK";display:inline-block;margin-left:8px;padding:3px 10px;border-radius:999px;background:#ff5fa8;color:#fff;font:400 11px/1 var(--fh);letter-spacing:1px;vertical-align:middle}
+#llscr.frtap .llsay{cursor:pointer}
+/* (a phone: the line and its OK low on her felt, under the CLOSED machine, clear of an app's bar over the top) */
+#llscr.nar.frtap .llsay{top:auto;bottom:12px}
+/* (a phone's floor scrolls to Lady Luck for the walk: her line went off the top of the screen with the rest of the page.
+   It stays on screen, low, under her machine, 2026-10-17) */
+html.narrow #app.narrow[data-frstep=lady]:not(.attable) #infobar:has(#info.coachbar){position:fixed;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;margin:0}
 #frNar .frntap{left:50%;right:auto;transform:translateX(-50%);padding:7px 22px;border-radius:999px;background:#ff5fa8;color:#fff;font:400 14px/1 var(--fh);letter-spacing:1px;box-shadow:0 3px 0 #b8336f,0 6px 14px #0006;cursor:pointer}
 /* step 6: while you swap, the hearts you need sit back; only the junk glows. A heart tapped anyway shakes */
 #app[data-frstep=sleeve] #pkHand .card.frno{filter:saturate(.55) brightness(.82);box-shadow:none!important;outline:none!important}
@@ -39187,7 +39194,10 @@ function phCheatSync(){const E=phEls();if(!E||!phOn())return;const acts=$('#acti
   if(typeof phoneFit=='function')phoneFit();
   // the first run's swap beat: the sheet opens by itself, Swap with hand on top, and stays open for it (unless you
   // close it: then it waits for you)
-  if(typeof frAct2=='function'&&frAct2()&&PH.frR!==R&&!PH.sheet&&cp&&!(typeof CM!='undefined'&&CM.on)&&$('#ov').hidden&&!PH.open)phCheat(true);}
+  // (2026-10-17: and not once Swap is picked: it popped back over your cards while you picked one, its dim over Bambi's
+  // next OK and the bar; nor once the move's made: the meter over, the line still "move" for a beat)
+  const frMade=typeof FR!='undefined'&&((R.swaps||0)!==(FR.sw0||0)||(S.heat||0)!==(FR.heat0||0));
+  if(typeof frAct2=='function'&&frAct2()&&PH.frR!==R&&!PH.sheet&&cp&&!(R.pk&&R.pk.slvArm)&&!busy&&!frMade&&!(typeof CM!='undefined'&&CM.on)&&$('#ov').hidden&&!PH.open)phCheat(true);}
 // a pick: the panel's buttons run themselves (cpClick); a copy presses the real button or uses the pocket trick
 function phSheetClick(e){const m=e.target.closest('.chm');if(m){if(m.disabled)return;e.stopPropagation();phCheat(false);
     if(m.dataset.src){const b=$('#actions '+m.dataset.src);if(b&&!b.disabled)b.click();}else if(m.dataset.cons!=null&&typeof useCons=='function')useCons(+m.dataset.cons);return;}
@@ -40029,7 +40039,10 @@ function frLineOff(){clearTimeout(FR.lineT);FR.tap=null;FR.lineKey=null;if(UI.ba
 function frTapped(){if(FR.tour&&!FR.tour.skip){FR.tour.skip=true;(FR.tour.wake||(()=>{}))();return;}if(FR.tap){sfx('card');FR.tap();return;}
   // (a step that waits for you: she points at it)
   const b=document.querySelector('#bstage .bsbub');if(b&&b.animate&&!reduceMotion())b.animate([{transform:'none'},{transform:'translateX(-6px)'},{transform:'translateX(5px)'},{transform:'none'}],{duration:280});}
-function frTapHint(){const el=document.getElementById('bstage');if(el)el.classList.toggle('tapme',!!FR.tap);const inf=$('#info');if(inf)inf.classList.toggle('frtap',!!FR.tap);}
+function frTapHint(){const el=document.getElementById('bstage');if(el)el.classList.toggle('tapme',!!FR.tap);const inf=$('#info');if(inf)inf.classList.toggle('frtap',!!FR.tap);
+  // (2026-10-17: "One spin a casino..." on Lady Luck's screen waited for a tap with no OK to show it: her line there
+  // gets the pill too; a tap anywhere on her screen is the OK, frGuard)
+  const ll=document.getElementById('llscr');if(ll)ll.classList.toggle('frtap',!!FR.tap&&!!FR.run&&FR.step>=8);}
 // the phone's top card takes the same tap
 document.addEventListener('pointerdown',e=>{if(!(FR.run&&frScript())&&!FR.post)return;const t=e.target;if(t&&t.closest&&t.closest('#info.coachbar')){e.stopPropagation();frTapped();}},true);
 
@@ -40132,7 +40145,7 @@ async function frGo(tok){const live=()=>frAlive(tok),ropes=!!S.flags.ropes,app=$
   // 9. CLOSED at full size; straight into the Big Game
   frStep(9);await frSleep(250);if(!live())return;llOpen();frLL('spin');
   await frHoldTap(3400);
-  if(!live())return;if(llScr()){LL.busy=0;llClose();}
+  frTapHint();if(!live())return;if(llScr()){LL.busy=0;llClose();}
   // the floor with the Big Game's door, then the entrance (the room goes dark, Charlie steps out, Deal me in)
   await frWait(()=>S.phase=='floor'&&!!$('.bgroom')&&!busy,6000);if(!live())return;
   frBigGo();
