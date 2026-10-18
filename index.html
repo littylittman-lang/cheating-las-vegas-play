@@ -9763,9 +9763,13 @@ button.mnli{cursor:pointer}button.mnli:hover{filter:brightness(.95)}button.mnli:
 #app.narrow .mnfree .mncards{flex-direction:column;flex-wrap:nowrap;gap:8px}
 #app.narrow .mnfree .mncard{width:100%;min-height:0;padding:9px 10px 8px}
 #app.narrow .mnfree h2{font-size:17px}
-.mntour{position:fixed;z-index:60;max-width:320px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#1b0f24f0;border:2px solid var(--gold);box-shadow:0 6px 22px #000a;color:#fff;font-size:15px}
-.mntour b{color:#ff8fc8;font:400 12px/1 var(--fh);letter-spacing:1px;text-transform:uppercase}
-.mntour .mntok{flex:none;padding:6px 14px;min-height:0}
+/* (Litty 2026-10-18: "bambis text pop-up is so small i didnt even see it": her own cream bubble, her own size) */
+.mntour{position:fixed;z-index:60;width:max-content;max-width:min(30vw,500px);display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 18px 15px;border-radius:18px;
+  background:#fffaf0;color:#2a1636;box-shadow:0 10px 30px #000b,0 0 0 3px #ff4fa3;font:600 clamp(16px,1.3vw,27px)/1.3 var(--fb,inherit);animation:mntIn .3s cubic-bezier(.2,1.4,.4,1)}
+.mntour b{color:#d6407a;font:400 clamp(12px,.7vw,17px)/1 var(--fh);letter-spacing:1px;text-transform:uppercase}
+.mntour .mntok{align-self:flex-end;padding:.35em 1.1em;min-height:0;background:#ff4fa3;color:#fff;border-color:#ff4fa3;font-size:clamp(14px,.85vw,19px)}
+@keyframes mntIn{from{transform:scale(.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.mntour{animation:none}}
 .mntlit{outline:3px solid var(--gold);outline-offset:3px;box-shadow:0 0 18px #f6c453aa}
 
 /* the Booth, drag and drop: strip left (a third), rows right; a phone: strip on top */
@@ -12279,8 +12283,10 @@ const MUSIC_GROUPS={
   swing:['sw-just-swing','sw-swing-the-night-away','sw-swing-train','sw-swing-brass','sw-lively-big-band','sw-big-band-restaurant'],   // the casino floors
   lounge:['lo-cocktail-jazz','lo-cocktail-lounge','lo-swing-cocktail-bar','lo-midnight-club','lo-cool-jazz','lo-saxophone-bar'],         // the tables, the title, Lady Luck, the Strip
   funk:['fk-cocktail-bar-funk','fk-acid-jazz']};                                                                                          // the Big Games and the back alley
-// which group plays where (a casino's floor is swing, its tables lounge)
-const TRACKS={floor:'swing',table:'lounge',big:'funk',alley:'funk',title:'lounge',luck:'lounge',tension:'lounge'};
+// (Litty 2026-10-18: "rotate all the music all the time...i hear one tune on the menu it gets very annoying": one shuffled
+// playlist of every track, everywhere; a new screen carries on with the song that's playing, and every track plays before one repeats)
+MUSIC_GROUPS.all=[].concat(MUSIC_GROUPS.swing,MUSIC_GROUPS.lounge,MUSIC_GROUPS.funk);
+const TRACKS={floor:'all',table:'all',big:'all',alley:'all',title:'all',luck:'all',tension:'all'};
 const MUSIC_CREDITS={pixabay:['Just Swing (kaazoom)','Swing the Night Away (kaazoom)','Swing Train (JuliusH)','Swing Brass (JuliusH)','Lively Big Band Swing for Dancing (NickPanek)','Big Band Song Restaurant Jazz (echoes_of_lumen)','Cocktail Jazz (alex-morgan)','Jazz Cocktail Lounge Music (alex-morgan)','Swing Jazz Cocktail Bar (alex-morgan)','Jazz Midnight Club Music (alex-morgan)','Cool Jazz (The_Mountain)','Saxophone Jazz Cocktail Bar (alex-morgan)','Jazz Cocktail Bar Funk (alex-morgan)','Acid Jazz Cocktail Bar (alex-morgan)']};
 function musicCreditsHTML(){return `<details class="mucred"><summary>Music credits</summary><div class="mucl"><p>Music from Pixabay (pixabay.com), used under the Pixabay Content License:</p>${MUSIC_CREDITS.pixabay.map(t=>`<p>${t}</p>`).join('')}</div></details>`;}
 /* The player: two plain <audio> elements, streamed (never fetched whole), loudness by element.volume (a media element
@@ -12302,8 +12308,13 @@ const MUS=(()=>{
   // a group's track: the same one until it plays out; one left alone longer than KEEP gives way to the next (no restart from the top)
   const GSEL={};function pickOf(g){if(!MUSIC_GROUPS[g])g='lounge';const L=MUSIC_GROUPS[g];if(!GSEL[g])GSEL[g]=L[Math.floor(Math.random()*L.length)];
     const sel=GSEL[g],r=POS[sel];if(r&&now()-r.at>=KEEP&&!POOL.some(p=>p.track===sel))return nextOf(g);return sel;}
-  function nextOf(g){if(!MUSIC_GROUPS[g])g='lounge';const L=MUSIC_GROUPS[g],was=GSEL[g];let n=was;if(L.length>1)while(n===was)n=L[Math.floor(Math.random()*L.length)];GSEL[g]=n;if(was)delete POS[was];return n;}
-  const grpOf=t=>Object.keys(MUSIC_GROUPS).find(g=>MUSIC_GROUPS[g].includes(t));
+  function nextOf(g){if(!MUSIC_GROUPS[g])g='lounge';const L=MUSIC_GROUPS[g],was=GSEL[g];let n=was;
+    // a shuffled bag: every track once before any repeats, never the same one twice running
+    if(L.length>1){const B=BAG[g]=(BAG[g]||[]).filter(t=>L.includes(t)&&t!==was);if(!B.length){B.push(...L.filter(t=>t!==was));for(let i=B.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[B[i],B[j]]=[B[j],B[i]];}}n=B.shift();}
+    GSEL[g]=n;if(was)delete POS[was];return n;}
+  const BAG={};
+  // (the one playlist first: an ended track moves the playlist on, not its old group)
+  const grpOf=t=>MUSIC_GROUPS.all&&MUSIC_GROUPS.all.includes(t)?'all':Object.keys(MUSIC_GROUPS).find(g=>MUSIC_GROUPS[g].includes(t));
   function pool(){if(!POOL.length)for(let i=0;i<2;i++)POOL.push({el:el(),track:null,src:null,g:0,tg:0,tf:1,tt:1,want:false});return POOL;}
   function trackOf(w){if(w.track)return w.track;const g=w.big?TRACKS.big:TRACKS[w.cue]?TRACKS[w.cue]:(w.tbl?TRACKS.table:TRACKS.floor);return pickOf(g);}
   // what the game wants: the shop, Lady Luck, a Big Game, the casino (quieter at a table); else the last AUD.music call
@@ -17004,7 +17015,11 @@ const PK={
     // (Litty 2026-10-12: on the first run's swap beat the table stays quiet: Bambi and the glowing Swap with hand say it)
     else if(!p.played.length&&!busy&&!(typeof frAct2=='function'&&frAct2()))prev=`Pick up to <b>5 cards</b>.`;
     const nx=p.draw[p.draw.length-1];const dive=casinoOf().th.dive;const dn=deckName(),mk=S.deck.filter(c=>c.sc).length;const read=nx&&!p.peek&&!!(S.flags.firstPlay||S.playN>0)&&canReadScuff(nx);
-    if(read&&p.readId!==nx.id){p.readId=nx.id;p.readT=performance.now();if(typeof teach=='function'&&typeof FR_LINES!='undefined'&&S.casino==0)setTimeout(()=>{try{teach('l_marks',FR_LINES.marks);}catch(e){}},2700);}const el2=read?performance.now()-p.readT:9e9;
+    if(read&&p.readId!==nx.id){p.readId=nx.id;p.readT=performance.now();}const el2=read?performance.now()-p.readT:9e9;
+    // Bambi knows Charlie's marks (Litty 2026-10-18: "first hand at Charlie's"): the first hand you can hear it (the first
+    // run's scripted hands go first: its first free hand), Charlie's deck only; a busy moment tries again on the next render
+    if(!p.mkT&&S.casino==0&&!S.practice&&(S.startDeck||'charlie')=='charlie'&&mk&&!(S.flags.said&&S.flags.said.l_marks)&&typeof teach=='function'&&typeof FR_LINES!='undefined'
+      &&!(typeof frScript=='function'&&frScript()&&!(typeof FR!='undefined'&&FR.step>=7))){p.mkT=1;setTimeout(()=>{p.mkT=0;try{if(R&&R.t=='poker'&&S.phase=='play'&&!busy)teach('l_marks',FR_LINES.marks);}catch(e){}},1500);}
     const pile=nx?`<div class="deckpile"><div class="pstack">${backHTML()}${backHTML()}</div><div class="flip ${el2<2600?'go':''}" style="animation-delay:-${Math.min(el2,2600)}ms"><div class="fb">${backOf(nx)}</div><div class="ff">${cardHTML(nx)}</div></div>${(pl=>`<div class="plbl${pl==dn?' plain':''}">${pl}</div>`)(p.peek?dn:marksOnly(nx)?'Your mark. Know what it is?':read?`Next up: the <b>${cardName(nx)}</b>.`:nx.sc&&freshDecks()?'Fresh deck here: your marks don\'t show.':dive&&isScuffed(nx)?'Marked. You can\'t read it.':dn)}${mk?`<div class="pmk" title="Marked cards: you can read their backs">${mk} marked</div>`:''}</div>`:'';
     const pn=Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0);
     // The Signal: Sid, behind the dealer, calls the next 2 cards through your earpiece
@@ -24796,10 +24811,10 @@ const serEach=t=>SER_EACH[t]||'you both play one hand.';
  each table's own words, 12 words at most. It shows in the entrance under the rule (61n-bigentrance.js), at game 1 (a
  banner, serOpen), pinned on the tracker (serGoalHTML) and in How to play (96-rules.js rxTabHTML). A table may say its
  own: SER_T[t].win (a string or a function) wins over this list (the roulette rebuild, 61e). {P}: his or her. */
-const SER_WIN={poker:'One hand each. Bigger win takes the game.',bj:'Same dealer, one hand each. Bigger win takes the game.',
+const SER_WIN={poker:'One hand each. Better hand wins. Tie goes to more chips.',bj:'Same dealer. Better hand wins. Tie goes to more chips.',
   craps:'Make your point before a 7. Bigger point wins.',bacc:'Same coup, your own bet. Bigger win takes the game.',
   roulette:'One spin, one game. Win more than you bet. First to 4.',bigsix:'Same spin, your own slot. Bigger win takes the game.',
-  slots:'One pull each. Bigger win takes the game.',vpoker:'One deal and draw each. Bigger win takes the game.',claw:'One grab each. Bigger win takes the game.'};
+  slots:'One pull each. Bigger win takes the game.',vpoker:'One draw each. Better hand wins. Tie goes to more chips.',claw:'One grab each. Bigger win takes the game.'};
 // his or her ("his shoot"), and capitalized ("His shoot: +2,400")
 const serPos=()=>bossPro()=='she'?'her':'his',serPosC=()=>cap(serPos());
 function serWinLine(t){t=t||(R&&R.ser&&R.ser.t);const a=SER_T[t];let w=a&&a.win;if(typeof w=='function')try{w=w();}catch(e){w=null;}
@@ -24907,10 +24922,10 @@ async function serAfter(){if(!R||!R.ser)return;const s=R.ser,a=SER_T[s.t],c=s.cu
   // equal chips: the table's own tiebreak (your Pair beats his High Card); only a dead heat replays
   // (Litty 2026-10-14: a 0-0 replays too, the boss never wins a game where nobody won)
   // a table that decides by something other than chips (craps: Race to the point, 61i-sercraps.js)
-  if(a.decide){try{const x=a.decide();res=x.r;tb=x.why||'';}catch(e){if(window._v)console.error('decide',e);}}
+  let rk=0;if(a.decide){try{const x=a.decide();res=x.r;tb=x.why||'';rk=x.rk?1:0;}catch(e){if(window._v)console.error('decide',e);}}
   else if(res=='T'&&me>0&&a.tie){try{const x=a.tie();if(x&&(x.r=='W'||x.r=='L')){res=x.r;tb=x.why||'';}}catch(e){if(window._v)console.error('tiebreak',e);}}
   const spent=R.chgSpent||{};R.chgSpent={};R.mullUndo=null;R.mullAt=null;const st=sdStakes(s);
-  const g={no:s.no,me,him,mn:c.mn||(me?'':'No win'),hn:c.hn||(him?'':'No win'),res,rc:c.rc||0,hrc:c.hrc||0};if(tb)g.tb=tb;s.games.push(g);s.lit=res;
+  const g={no:s.no,me,him,mn:c.mn||(me?'':'No win'),hn:c.hn||(him?'':'No win'),res,rc:c.rc||0,hrc:c.hrc||0};if(tb)g.tb=tb;if(rk)g.rk=1;s.games.push(g);s.lit=res;
   if(res=='W'){s.w++;s.flagFor=null;}else if(res=='L'){s.l++;s.flagFor=s.games.length-1;s.undo={chg:spent};}
   // a hand has 'won here' (Lefty Lou, Card-Sharp Shirley) only when it won a game
   s.won=s.won||{};if(res=='W'&&c.key)s.won[c.key]=1;R.won=Object.assign({},s.won);
@@ -24930,7 +24945,7 @@ async function serAfter(){if(!R||!R.ser)return;const s=R.ser,a=SER_T[s.t],c=s.cu
   if(res!='T')s.no++;return serNext();}
 // why a game went the way it did, both numbers (Litty: "its not clear what wins"): "Your shoot +3,600 beats his +2,400."
 // A 0-0 the table settled: "Both +0. Your pair of Kings beats his Ace high." A dead heat: "Both +1,200. Game 3 replays."
-function serWhy(g,t){{const a=SER_T[t||(R&&R.ser&&R.ser.t)];if(a&&a.why)return a.why(g);}const n=serNoun(t),P=serPos();if(g.res=='T')return `Both ${serAmt(g.me)}. Game ${g.no} replays.`;if(g.tb)return `Both ${serAmt(g.me)}. ${g.tb}.`;
+function serWhy(g,t){{const a=SER_T[t||(R&&R.ser&&R.ser.t)];if(a&&a.why)return a.why(g);}const n=serNoun(t),P=serPos();if(g.res=='T')return `Both ${serAmt(g.me)}. Game ${g.no} replays.`;if(g.rk&&g.tb)return g.tb+'.';if(g.tb)return `Both ${serAmt(g.me)}. ${g.tb}.`;
   return g.res=='W'?`Your ${n} ${serAmt(g.me)} beats ${P} ${serAmt(g.him)}.`:`${cap(P)} ${n} ${serAmt(g.him)} beats your ${serAmt(g.me)}.`;}
 const serWords=x=>String(x).replace(/<[^>]+>/g,' ').split(/\s+/).filter(Boolean).length;
 // the dealer says it, and who takes the game: "Your shoot +3,600 beats his +2,400. Game 3 is yours." (12 words at most)
@@ -25611,7 +25626,7 @@ const SCR={
   async resultCard(){const s=R.ser,g=s.games[s.games.length-1];if(!g||SPEED<.05||DRY)return;if(g.res=='T')return;
     await banner(g.res=='W'?`You won round ${g.no}.`:`${serWhoC()} won round ${g.no}.`,`${g.tb||''} ${s.w}-${s.l}.`,2000,(g.res=='W'?'gold':'red')+' crresult');},
   clearFelt(){const c=R.cr;if(!c)return;if(!CTM.live())CTM.reset();c.land=null;c.last=null;c.hist=[];c.rolls=0;c.out=0;c.made=[];c.phase='come';c.point=null;c.pot=0;},
-  async show(){const h=SCR.his();await serHisShow(h.score,h.events.length?h.events.join(' + '):'No win',h.hrc);}};
+  async show(){const h=SCR.his(),ev=h.events||[];await serHisShow(h.score,ev.length?ev.join(' + '):'No win',h.hrc);}};
 SER_T.craps={base:3,dec:1,duel:1,noSd:1,
   decide(){const s=R.ser,me=s.cur.res,him=s.his.res,a=SCR.rank(me),b=SCR.rank(him),P=serPos();
     // (no shoot on either side: a walk-out or a test's forced result, decided by chips as before)
@@ -25699,7 +25714,37 @@ setTimeout(()=>{
   if(SER_T.craps){SER_T.craps.tie=()=>{const h=R.ser.his;const me=h.myBest||0,him=h.best||0;if(!me||!him||me==him)return null;return {r:me>him?'W':'L',why:`Your best roll, ${me}, ${me>him?'beats':'loses to'} his ${him}`};};
     const rv=SER_T.craps.reveal;SER_T.craps.reveal=async function(){const h=R.ser.his,c=R.cr;if(h&&c)h.myBest=Math.max(0,...(c.hist||[]).map(x=>x.t||0));return rv.apply(this,arguments);};}
 },0);
-setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{serPkVal,serPkTie,serPkName});},0);
+/* ---------- poker hands: the better hand wins (Litty 2026-10-18) ----------
+ Litty: "feels weird to beat Charlie with a flush to his full house" ... "a better hand should win", chips settle a tie.
+ The kind of hand first (Full House beats Flush, whatever either paid); the same kind: the bigger win (your crew, gear and
+ marked cards win you those); equal chips: the cards (kickers), then a replay. A 0-0 still replays (the boss never wins a
+ game nobody won). Poker and video poker. */
+function serRankFirst(mine,his){const s=R.ser,me=Math.round(s.cur.me||0),him=Math.round(s.cur.him||0);
+  const chips=()=>{if(me!=him)return {r:me>him?'W':'L'};if(me>0){const x=serPkTie(mine,his);if(x)return x;}return {r:'T'};};
+  if(!mine||!his||!mine.length||!his.length||(!me&&!him))return chips();
+  const ha=evalHand(mine).h,hb=evalStd(()=>evalHand(serPlain(his)).h),a=HE_ORDER.indexOf(ha),b=HE_ORDER.indexOf(hb);
+  if(a!=b){const w=a>b;return {r:w?'W':'L',rk:1,why:w?`Your ${SER_HN(ha)} beats ${serPos()} ${SER_HN(hb)}`:`${serPosC()} ${SER_HN(hb)} beats your ${SER_HN(ha)}`};}
+  const x=chips();if(x.r=='T'||x.why)return x;
+  return {r:x.r,rk:1,why:serTieChips(SER_HN(ha),me,him)};}
+// the same kind of hand (Litty 2026-10-18: "if its a tie (same hand), say tie goes to whoever got more chips")
+const serTieChips=(nm,me,him)=>`Same hand. Tie goes to more chips: ${me>him?`yours ${serAmt(me)} to ${serAmt(him)}`:`${serPos()} ${serAmt(him)} to ${serAmt(me)}`}`;
+setTimeout(()=>{
+  if(SER_T.poker)SER_T.poker.decide=()=>{const sh=R.ser.his&&R.ser.his.show;return serRankFirst(sh&&sh.mine,sh&&sh.his);};
+  if(SER_T.vpoker)SER_T.vpoker.decide=()=>{const h=R.ser.his;return serRankFirst(R.vp&&R.vp.hand,h&&h.hand);};
+  // 21 the same (Litty 2026-10-18: "same in blackjack"): blackjack, then a Charlie, then the higher total; a bust is last.
+  // Your best hand if you split. The same: the chips, then the 21 tiebreak above (a dead heat replays)
+  if(SER_T.bj)SER_T.bj.decide=()=>{const s=R.ser,b=R.bj,h=s.his,me=Math.round(s.cur.me||0),him=Math.round(s.cur.him||0);
+    const chips=()=>{if(me!=him)return {r:me>him?'W':'L'};if(me>0&&typeof SER_T.bj.tie=='function'){const x=SER_T.bj.tie();if(x)return x;}return {r:'T'};};
+    if(!b||!h||!h.p||!h.p.length||(!me&&!him))return chips();
+    const rk=(p,split,cn)=>{const t=pTot(p);return t>21?0:p.length==2&&t==21&&!split?23:p.length>=cn?22:t;};
+    const nm=v=>v==23?'blackjack':v==22?'Charlie':v==0?'bust':String(v);
+    const hands=(b.done&&b.done.length?b.done.map(x=>x.p):[]).concat(b.p&&b.p.length?[b.p]:[]);
+    const a=Math.max(0,...hands.map(p=>rk(p,!!b.split||hands.length>1,charlieN()))),c=rk(h.p,false,5);
+    if(a!=c){const w=a>c;if(!a)return {r:'L',rk:1,why:`You busted, ${serWho()} didn't`};if(!c)return {r:'W',rk:1,why:`${serWhoC()} busted, you didn't`};
+      return {r:w?'W':'L',rk:1,why:w?`Your ${nm(a)} beats ${serPos()} ${nm(c)}`:`${serPosC()} ${nm(c)} beats your ${nm(a)}`};}
+    const x=chips();if(x.r=='T'||x.why)return x;return {r:x.r,rk:1,why:serTieChips(nm(a),me,him)};};
+},0);
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{serPkVal,serPkTie,serPkName,serRankFirst});},0);
 
 // ===== 61k-serblk.js
 /* ================= the Big Game's series info: in the side panel, not over the felt =================
@@ -26532,7 +26577,8 @@ function pachinko(choices,title){if(SPEED<.05)return Promise.resolve(rnd(choices
        <div class="pbins">${choices.map((c,i)=>`<div class="pbin" data-i="${i}">${choiceHTML(c,i,false)}</div>`).join('')}</div></div></div></div>
     <div class="row"></div></div>`,'wide pachov');dbFill($('#ov .pbins'));pachFit();requestAnimationFrame(pachFit);
   const cv=$('#pachCv'),g=cv.getContext('2d'),opened=performance.now();
-  const pete=false,magnet=false;   // (Pachinko Pete and the Magnet Ball were cut, 2026-10-17: 99z-cut.js)let tries=pete?2:1,aim=0;
+  const pete=false,magnet=false;   // (Pachinko Pete and the Magnet Ball were cut, 2026-10-17: 99z-cut.js)
+  let tries=pete?2:1,aim=0;
   // the Ball Room: a Heavy Ball bounces less off the pins (it lands nearer where you drop it); a skin colors it
   const heavy=!!(S&&S.flags&&S.flags.pheavy),BOUNCE=heavy?1.3:1.55,KICK=heavy?28:70,PB=PBALL_SKIN[cosEq('pball')]||PBALL_SKIN.steel;
   const board=pachBoard(W,H,BIN,pins,PR,dpr),BA=pachBallArt(PB,BR,dpr);
@@ -41943,7 +41989,7 @@ const BG_LINE='"Something for your pocket, sugar. Pick one."';
 const BG_THANKS=BG_LINE;
 // what each one does at Pick Five, in one line
 const BG_D={stacked:'Tap a card: your next 3 cards are its suit.',camera:'See the next 5 cards until you leave.',acehole:'A spare Ace joins your hand at this table.',
-  misdeal:'Trade your whole hand for a fresh one.',mucker:'Draw 2 extra cards.',skip:'Burn the next card off the deck.',deuces:'2s are wild for your next 5 hands.'};
+  misdeal:'Trade your whole hand for a fresh one.',mucker:'Draw 2 extra cards.',skip:'Burn the next card. At craps: a bad roll is rethrown.',deuces:'2s are wild for your next 5 hands.'};
 const BG={open:0};
 const bgPool=()=>BG_POOL.filter(id=>TRICKS[id]&&!TRICKS[id].rare&&fitsT(TRICKS[id].tb,'poker'));
 const bgKey=a=>a.slice().sort().join(',');
@@ -42688,7 +42734,8 @@ function mnTourStep(){const old=document.getElementById('mnTour');if(old)old.rem
   const [txt,q]=MN_TOUR[i],t=$(q);if(!t)return mnTourEnd();try{t.scrollIntoView({block:'nearest'});}catch(e){}
   const b=document.createElement('div');b.id='mnTour';b.className='mntour';b.innerHTML='<b>Bambi</b><span>'+txt+'</span><button type="button" class="btn mntok">OK</button>';
   document.body.appendChild(b);const r=t.getBoundingClientRect(),w=b.offsetWidth,h=b.offsetHeight;
-  let y=r.bottom+10;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-10);b.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';b.style.top=y+'px';
+  // above the thing she names, so it never covers the row under it; below when there's no room
+  let y=r.top-h-12;if(y<8)y=Math.min(innerHeight-h-8,r.bottom+12);b.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';b.style.top=y+'px';
   t.classList.add('mntlit');if(typeof glintAt=='function')glintAt(t);
   b.querySelector('.mntok').onclick=e=>{e.stopPropagation();UI.mnTour++;mnTourStep();};}
 {const g1=goRoom;goRoom=function(){if(UI.mnTour!=null)mnTourEnd();return g1.apply(this,arguments);};}
