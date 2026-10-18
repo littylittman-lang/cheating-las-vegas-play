@@ -15459,10 +15459,11 @@ function showMenu(pg){if(busy)return;pg=pg||'main';const sl=(k,l)=>`<label class
     if(v=='title'){closeOv();saveRun();showTitle();}};}
 function howTo(back){const nv=typeof nerveOn=='function'&&nerveOn();
   ask(`<h2>How to play</h2><div class="howto howone">
-  <div><b>Win chips.</b> Pick a table and a bet. Wins pay chips.</div>
-  <div><b>The Big Game.</b> Save the buy-in. Beat the boss, best of 7.</div>
-  <div><b>Cheat.</b> ${nv?'Bet to build Nerve. Spend it on moves.':cmDesk('Tap a move. Tap anywhere when it looks away.')}</div>
-  <div><b>Heat.</b> Get made and it's +1 heat. Three and you're caught.</div>
+  <div><b>Win chips.</b> Pick a table. Place a bet.</div>
+  <div><b>The Big Game.</b> Save the buy-in. Beat the boss.</div>
+  <div><b>Nerve.</b> Bet big to earn it. Cheats spend it.</div>
+  <div><b>Cheat.</b> ${cmDesk('Tap a cheat. Tap anywhere when the needle is in the green.').replace(/^Tap a cheat/,cmDesk('Tap anywhere')=='Tap anywhere'?'Tap a cheat':'Click a cheat')}</div>
+  <div><b>Heat.</b> Get made: +1 Heat. Three and you're caught.</div>
   <div><b>Crew and gear.</b> Hire them in the back alley. Wins pay more.</div>
   </div><div class="row"><button class="btn go" data-v="ok">Got it</button><button class="btn" data-v="rules">Full rules<span class="s">Every table</span></button>${S?'':'<button class="btn gd" data-v="practice">Practice<span class="s">Learn the ropes · every game</span></button><button class="btn cy" data-v="meters">Cheat meters<span class="s">Practice every one</span></button>'}</div>`,'wide howov1').then(v=>{closeOv();if(v=='rules')return rulesPick(()=>howTo(back));if(v=='practice')return practiceMenu(()=>howTo(back));if(v=='meters'){location.hash='meters';if(typeof cmGalOpen=='function'&&!CMG.on)cmGalOpen();return;}back?back():showTitle();});}
 // the full rules, one table at a time (96-rules.js rulesOpen): pick a game
@@ -35986,7 +35987,9 @@ const nvFreeUsed=id=>!!(R&&R.nvFree&&R.nvFree[id]);
 const nvBackRoom=()=>!!(R&&typeof HOUSE_GAMES!='undefined'&&HOUSE_GAMES[R.t]);
 function nvEyeOn(){if(!S)return false;const C=casinoOf();if(!NV_EYE_C.includes(C.id))return false;if(R&&(R.nvHector||R.t=='sports'||nvBackRoom()))return false;return true;}
 function nvQuote(id){const b=nvBase(id);let c=b,free=false;if(b==0){if(!nvFreeUsed(id)){free=true;c=0;}else c=1;}
-  const eye=!free&&nvEyeOn();if(eye)c+=1;const have=nvS().n;
+  // (Litty 2026-10-18: the jolt "so the race doesnt stop...just tap the button and the horse speeds up immediately": the
+  // Shock never takes the Eye's +1, so it stays 1 and instant, no needle)
+  const eye=!free&&id!='shock'&&nvEyeOn();if(eye)c+=1;const have=nvS().n;
   // (Litty 2026-10-13) after a deck check the dealer watches the backs: Swap with hand +1 here (97b-cardcheck.js),
   // and the tier, so the needle, follows the cost
   const dw=!free&&id=='swap'&&typeof dealerWatching=='function'&&dealerWatching();if(dw)c+=1;
