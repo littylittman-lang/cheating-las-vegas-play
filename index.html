@@ -20105,7 +20105,11 @@ const TEAMS=[['Vegas Rattlers','#1b1b1b','#c9c9d2'],['Reno Rhinos','#55555f','#f
 const SP={
   start(){R.sp={slate:[],legs:[],phase:'build',msg:'',boards:null,bribe:null,move:0,shave:null};SP.newSlate();
     dealerSay(pick(['Lines are up. The house sends its regards.','Parlays pay big, pal. That\'s why we love \'em.','No refunds on heartbreak.']));},
-  newSlate(){const ts=pickN(TEAMS.map((t,i)=>i),8);const g=[];
+  newSlate(){
+    // (Litty 2026-10-18: "for weather reports in football - try and have at least one game that has a match up that would be
+    // affected by it": a warm team on the road in the snow belt, or a northern team visiting the South)
+    const wm=i=>TEAM_REG[i]=='south',hits=t=>[0,1,2,3].some(k=>{const h=t[k*2],a=t[k*2+1];return (REG_NAME[TEAM_REG[h]]&&wm(a))||(wm(h)&&!wm(a));});
+    let ts=pickN(TEAMS.map((t,i)=>i),8);for(let n=0;n<40&&!hits(ts);n++)ts=pickN(TEAMS.map((t,i)=>i),8);const g=[];
     for(let i=0;i<4;i++){const h=ts[i*2],a=ts[i*2+1];const truth=[60+rnd(36),60+rnd(36)];const pub=truth.map(x=>clamp(x+rnd(17)-8,55,99));
       g.push(Object.assign({id:i,h,a,truth,pub,score:[0,0],q:0},SP.book(pub)));}SP.news(g);
     if(crewOn('connected')){const w=pick(g);w.wired={type:pick(['spread','ml']),side:pick(['h','a'])};}
@@ -20119,7 +20123,9 @@ const SP={
     // the weather: snow where the home team plays, or a heat wave in the south
     const snow=Object.keys(REG_NAME).filter(r=>slate.some(g=>TEAM_REG[g.h]==r)),snowGood=snow.filter(r=>slate.some(g=>TEAM_REG[g.h]==r&&warm(g.a)));
     const heat=slate.some(g=>warm(g.h)&&!warm(g.a));
-    if(Math.random()<.7&&(snowGood.length||snow.length||heat)){const r=snowGood.length&&Math.random()<.85?pick(snowGood):snow.length&&(!heat||Math.random()<.5)?pick(snow):null;
+    // (a report always hits somebody: only a snowstorm where a warm team visits, or a heat wave a northern team flies into)
+    const wxOpt=snowGood.concat(heat?[null]:[]);
+    if(Math.random()<.7&&wxOpt.length){const r=pick(wxOpt);
       if(r){H.push(`<b>BLIZZARD WARNING:</b> a snowstorm sweeps across ${REG_NAME[r]} this weekend. Whiteouts expected through Sunday.`);
         for(const g of slate)if(TEAM_REG[g.h]==r){g.wx=.84;if(warm(g.a)){g.truth[1]=clamp(g.truth[1]-11,55,99);hit.add(g.a);rec(g.a,-11);}}}
       else{H.push('<b>HEAT WAVE:</b> 112 degrees and climbing across the South and the desert. Doctors warn visitors to take it easy.');
@@ -20782,7 +20788,15 @@ const HR={
     HR.say(lines.join(' '));},
   // off before the finish (the first one at the wire takes it down early)
   annOff(){clearTimeout(HR._annT);const a=$('#tin .hx-ann');if(a)a.classList.remove('in');},
-  say(txt){HR.said=null;if(SPEED<.05||DRY)return;try{if(!META.snd||!(META.snd.sfx>0)||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;const s=window.speechSynthesis;
+  // (Litty 2026-10-18: "use this audio to replace down the stretch they come robo voice": a real recorded call, music/
+  // hr-stretch-call.m4a beside the music, at the sound-effects level; the browser's voice only if the file won't play)
+  callFile(txt){return /down the stretch/i.test(txt)?'hr-stretch-call.m4a':null;},
+  say(txt){HR.said=null;if(SPEED<.05||DRY)return;if(!META.snd||!(META.snd.sfx>0))return;const f=HR.callFile(txt);
+    if(f){try{const a=new Audio((/\/tools\//.test(location.pathname)?'../music/':'music/')+f);a.volume=Math.min(1,.35+META.snd.sfx*.75);
+      try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}HR.callEl=a;HR.said={txt,file:f};
+      const p=a.play();if(p&&p.catch)p.catch(()=>{if(HR.callEl===a){HR.callEl=null;HR.speak(txt);}});return;}catch(e){}}
+    HR.speak(txt);},
+  speak(txt){try{if(!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;const s=window.speechSynthesis;
     const u=new SpeechSynthesisUtterance(txt);const vs=s.getVoices()||[];const us=v=>/^en[-_]US/i.test(v.lang);
     const v=vs.find(v=>us(v)&&/Google|Guy|Davis|David|Mark|Andrew/i.test(v.name))||vs.find(us)||vs.find(v=>/^en/i.test(v.lang));if(v)u.voice=v;
     u.rate=1.3;u.pitch=1.45;u.volume=Math.min(1,.35+META.snd.sfx*.75);s.cancel();s.speak(u);HR.said={txt,rate:u.rate,pitch:u.pitch};}catch(e){}},
@@ -34396,8 +34410,10 @@ const METER_TUNE=[
   mtRow(655,.158),   // The Venetian Blinds
   mtRow(640,.154),   // Bellagiorgio
   // (the meter audit, Litty 2026-10-17: 'the needle should not slow down or speed up'. No green moves now: the Stardusk's
-  // small slow drift, {cams:'move',drift:{A:.04,P:7200}}, is gone; its lap and green are the ramp's last step)
-  mtRow(625,.150)];   // The Stardusk
+  // small slow drift was taken out; Litty put it back the next day, below)
+  // (Litty 2026-10-18: "the Stardusk meters should [have] the green/gold section moving slowly back and forth a bit":
+  // the small slow drift is back. The needle's speed stays constant; only the green and its gold sway)
+  mtRow(625,.150,{cams:'move',drift:{A:.04,P:7200}})];   // The Stardusk
 const METER_SLOW=1.8;          // prefers-reduced-motion: the same needle, this much slower
 const meterTune=()=>METER_TUNE[clamp(S?S.casino|0:0,0,METER_TUNE.length-1)];
 const meterKey=()=>R?R.t:'';
@@ -35906,12 +35922,15 @@ const NV_MAX=6,NV_TOP_MAX=4,NV_PER0=6,NV_PIPS=[2,3,4],NV_SLOT_N=5,NV_SLOT_K=1,NV
 const NV_STEADY=1.25;
 // the starting costs (the spec's table). A pocket trick not listed: 2 (today's needle)
 const NV_COST={swap:2,runup:3,cap:2,slap:1,post:3,nudger:2,ballswitch:4,diceswitch:4,squeeze:2,wipe:4,bump:2,smack:3,shake:1,
-  shock:2,fix:3,kick:2,pickpost:3,pointshave:2,dump:3,skipturn:3,shave:2,skip:1,
+  // (Litty 2026-10-18: "make the jolt cost one nerve so it doesn't break up the race and make fix the race 2 nerve": 1 is instant, no meter)
+  shock:1,fix:2,kick:2,pickpost:3,pointshave:2,dump:3,skipturn:3,shave:2,skip:1,
   // (Litty 2026-10-16: two Booth cheats for the weekend, 99zo-mentor.js: Free spins at the slots, Big bump at roulette)
   freespins:3,bigbump:4};
 const NV_COST_DEF=2;
 // the needle by tier: green and sweep multipliers (tier = cost, +1 when one short)
-const NV_TIER=t=>t<=2?{g:1,s:1}:t==3?{g:.75,s:1}:t==4?{g:.6,s:.85}:{g:.5,s:.85};
+// (Litty 2026-10-18: "make levels 3s 85% and level 4 and above be 70%": the time in the green. 4 and up keep the
+// quicker needle (x.85 a lap), so the green is .70/.85 of the 2s)
+const NV_TIER=t=>t<=2?{g:1,s:1}:t==3?{g:.85,s:1}:{g:.7/.85,s:.85};
 const NV_TIER_TAG=t=>t==3?'Tight':t==4?'Tight · Fast':t>=5?'Tightest':'';
 // tables whose old counter was a cheat count: their move (for R.disc's stand-in)
 const NV_COUNT_T={bj:'cap',slots:'slap',roulette:'post',vpoker:'smack',bacc:'squeeze',bigsix:'bump',claw:'shake',horses:'fix',sports:'kick'};
@@ -36318,7 +36337,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{nvCapRetro,
  nothing moves the meter during the sweep, and
  a tap is judged by cmMount at the frame it last drew. The tremble moves only your hands. */
 // (the plan's starting costs: only when the Nerve API is missing)
-const PLAN_COST={swap:2,runup:3,cap:2,pinch:2,slap:1,post:3,nudger:2,ballswitch:4,diceswitch:4,squeeze:2,wipe:4,bump:2,smack:3,shake:1,shock:2,fix:3,kick:2,pick:3,dump:3,skip:3,shave:2};
+const PLAN_COST={swap:2,runup:3,cap:2,pinch:2,slap:1,post:3,nudger:2,ballswitch:4,diceswitch:4,squeeze:2,wipe:4,bump:2,smack:3,shake:1,shock:1,fix:2,kick:2,pick:3,dump:3,skip:3,shave:2};
 const PR_DEF=2;   // a move the plan doesn't price (the pocket tricks)
 const PR={on:null,log:[],aud:null,room:0,gag:null,cam:null,glints:[]};
 const prId=x=>!x?'':typeof nvMoveId=='function'?nvMoveId(x):x.k=='cons'?x.id:x.k;
