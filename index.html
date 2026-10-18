@@ -9764,10 +9764,12 @@ button.mnli{cursor:pointer}button.mnli:hover{filter:brightness(.95)}button.mnli:
 #app.narrow .mnfree .mncard{width:100%;min-height:0;padding:9px 10px 8px}
 #app.narrow .mnfree h2{font-size:17px}
 /* (Litty 2026-10-18: "bambis text pop-up is so small i didnt even see it": her own cream bubble, her own size) */
-.mntour{position:fixed;z-index:60;width:max-content;max-width:min(30vw,500px);display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 18px 15px;border-radius:18px;
-  background:#fffaf0;color:#2a1636;box-shadow:0 10px 30px #000b,0 0 0 3px #ff4fa3;font:600 clamp(16px,1.3vw,27px)/1.3 var(--fb,inherit);animation:mntIn .3s cubic-bezier(.2,1.4,.4,1)}
-.mntour b{color:#d6407a;font:400 clamp(12px,.7vw,17px)/1 var(--fh);letter-spacing:1px;text-transform:uppercase}
-.mntour .mntok{align-self:flex-end;padding:.35em 1.1em;min-height:0;background:#ff4fa3;color:#fff;border-color:#ff4fa3;font-size:clamp(14px,.85vw,19px)}
+.mntour{position:fixed;z-index:60;width:max-content;max-width:calc(min(24vw,340px)*var(--popz,1));display:flex;flex-direction:column;align-items:flex-start;gap:calc(6px*var(--popz,1));
+  padding:calc(14px*var(--popz,1)) calc(18px*var(--popz,1)) calc(15px*var(--popz,1));border-radius:calc(18px*var(--popz,1));background:#fffaf0;color:#2a1636;box-shadow:0 10px 30px #000b,0 0 0 3px #ff4fa3;
+  font:600 calc(clamp(15px,1.25vw,21px)*var(--popz,1))/1.3 var(--fb,inherit);animation:mntIn .3s cubic-bezier(.2,1.4,.4,1)}
+/* (her stage bubble's sizes, x the game's zoom like the other tips on the page: zzzzzzzzzzzzzzpopz.css) */
+.mntour b{color:#d6407a;font:400 calc(13px*var(--popz,1))/1 var(--fh);letter-spacing:1px;text-transform:uppercase}
+.mntour .mntok{align-self:flex-end;padding:.35em 1.1em;min-height:0;background:#ff4fa3;color:#fff;border-color:#ff4fa3;font-size:calc(14px*var(--popz,1))}
 @keyframes mntIn{from{transform:scale(.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.mntour{animation:none}}
 .mntlit{outline:3px solid var(--gold);outline-offset:3px;box-shadow:0 0 18px #f6c453aa}
@@ -11363,6 +11365,9 @@ html.lite #actions.mpulse>.btn.mainact:not(:disabled){animation:mpBreatheLite 1.
 /* the craps throw (33c): the bar's halo is on its body only (.ctbw), never on the gold; the gold drawn exactly (no
  minimum width); the cursor its centre line */
 #crMeter .ctbar{filter:none!important}
+/* (Litty 2026-10-18: "should there be a white outline around the outside of the meter? looks weird" -> a crisp white edge
+   behind the bar's body only: no filter, so the gold and the needle stay exactly as drawn and judged) */
+#crMeter .ctbar::before{content:"";position:absolute;inset:-2px -2px -2px -2px;background:#fff;clip-path:polygon(0 0,100% 29%,100% 71%,0 100%)}
 #crMeter .ctbw{position:absolute;inset:0;filter:drop-shadow(0 2px 3px #0009)}
 html.lite #crMeter .ctbw{filter:none}
 #crMeter .ctperf{min-width:0;box-shadow:none;filter:none}
@@ -11518,6 +11523,49 @@ html.cmup #cmeter.luck .llekg::before{content:'';position:absolute;top:0;bottom:
 html.cmup #cmeter.luck:is(.still,.rm,.flat) .llekg::before{animation:none}
 html.cmup #cmeter.luck.flat .llekg::before{display:none}
 html.cmup #cmeter.luck.flat .llekg{background:linear-gradient(#0000 calc(50% - 1.5px),#ff5a6a calc(50% - 1.5px) calc(50% + 1.5px),#0000 calc(50% + 1.5px)),linear-gradient(#0000,#1a0006cc 40%,#000)}
+
+/* ===== css/zzzzzzzzzzzzzzpopz.css */
+/* Tips on the page itself grow with the game (Litty 2026-10-18: "bambis text pop-up is so small i didnt even see it ...
+   look for other similar issues"). #app is zoomed to fit a wide screen (12-ui.js fit: x1.37 at 1920, x1.82 at 2560), but
+   a tip appended to <body> isn't: a 14px tip read like 10px next to the felt. --appz is that zoom (1 on a phone, so a
+   phone is unchanged); --popz never shrinks below the size each tip was drawn at. Their spots are measured after they
+   fill (offsetWidth), so only the sizes change here. */
+:root{--popz:max(1,var(--appz,1))}
+/* the "what to do next" bubble (81-nextstep.js) */
+.nxtip{max-width:calc(420px*var(--popz));padding:calc(9px*var(--popz)) calc(16px*var(--popz));font-size:calc(16.5px*var(--popz))}
+.nxtip.side{max-width:calc(520px*var(--popz))}
+/* the pocket nudge (12-ui.js pocketBubble) */
+.pknag{max-width:calc(300px*var(--popz));padding:calc(8px*var(--popz)) calc(13px*var(--popz));font-size:calc(14px*var(--popz))}
+.pknag b{font-size:calc(11px*var(--popz))}
+/* a cheat's hover card (99zm-cheattips.js), a word's tip (13b-gloss.js), the Big Game 21's tips (61k-serblk.js) */
+#cheatTip{max-width:calc(260px*var(--popz));padding:calc(9px*var(--popz)) calc(12px*var(--popz)) calc(10px*var(--popz));font-size:calc(13.5px*var(--popz))}
+#cheatTip b{font-size:calc(13px*var(--popz))}
+#cheatTip em{font-size:calc(11px*var(--popz))}
+#gltip,#sbtip{max-width:calc(300px*var(--popz));padding:calc(8px*var(--popz)) calc(11px*var(--popz));font-size:calc(14px*var(--popz))}
+/* Quincy's and Lucky Sal's lines (99y-wong.js, 85-roster.js): above the bar, which grew with the game */
+.qsay{max-width:calc(300px*var(--popz));bottom:calc(110px*var(--popz));padding:calc(6px*var(--popz)) calc(14px*var(--popz)) calc(6px*var(--popz)) calc(6px*var(--popz))}
+.qsay .qf{width:calc(40px*var(--popz));height:calc(40px*var(--popz))}
+.qsay .ql{font-size:calc(15px*var(--popz))}
+.salsing{max-width:calc(380px*var(--popz));bottom:calc(110px*var(--popz));padding:calc(8px*var(--popz)) calc(14px*var(--popz)) calc(8px*var(--popz)) calc(8px*var(--popz))}
+.salsing .sf{width:calc(54px*var(--popz));height:calc(54px*var(--popz))}
+.salsing .sn{font-size:calc(10.5px*var(--popz))}
+.salsing .sl{font-size:calc(15px*var(--popz))}
+/* the narrator's line over the felt (99zn-narrator.js) */
+#narSay{max-width:min(calc(560px*var(--popz)),86vw);padding:calc(8px*var(--popz)) calc(16px*var(--popz));font-size:calc(15px*var(--popz))}
+/* the tutorials' Skip and the narrator card's tap pill */
+#frSkip{top:calc(10px*var(--popz));right:calc(12px*var(--popz));padding:calc(6px*var(--popz)) calc(14px*var(--popz)) calc(7px*var(--popz));font-size:calc(14px*var(--popz))}
+#frSkip .s{font-size:calc(11px*var(--popz))}
+#frNar .frntap{padding:calc(7px*var(--popz)) calc(22px*var(--popz));font-size:calc(14px*var(--popz))}
+/* a cheat's label at the end of its gold trail (99zzg-trail.js): drawn for 1920, where it stays; bigger past it */
+@media (min-width:701px){#trfx .trlbl{max-width:min(calc(320px*var(--popz)),calc(100vw - 16px));font-size:max(20px,calc(14.6px*var(--appz,1)))}#trfx .trlbl.sm{font-size:max(15px,calc(11px*var(--appz,1)))}}
+/* Bambi's line on Lady Luck's screen (99bb-ladyluck.js llSay) in her own cream bubble, as on her stage (#bstage .bsbub):
+   it was a small dark box in the corner, easy to miss. The open column left of the machine holds it */
+#llscr .llsay{background:#fffaf0;color:#2a1636;border:0;box-shadow:0 10px 30px #000b}
+#llscr .llsay b{color:#d6407a}
+#llscr:not(.nar) .llsay{max-width:250px;padding:10px 14px 10px 10px;font:600 19px/1.3 var(--fb)}
+#llscr:not(.nar) .llsay .llface{width:46px;height:46px}
+/* the dealer's word (97d-pitboss.js say): a size up, it was the smallest line on the felt */
+#app:not(.narrow) #tDealer .dsay{max-width:250px;font-size:14.5px}
 
 </style>
 <div id="app">
@@ -15000,6 +15048,9 @@ let ZOOM=1;
 function fit(){const W=innerWidth,H=innerHeight,app=$('#app');
   if(W<900){ZOOM=1;app.classList.add('narrow');document.documentElement.classList.add('narrow');app.style.zoom='';app.style.width='';app.style.height='';phVHSet();}
   else{app.classList.remove('narrow');document.documentElement.classList.remove('narrow');document.documentElement.style.removeProperty('--phVH');ZOOM=clamp(Math.min(W/1260,H/790),.7,2.4);app.style.zoom=ZOOM;app.style.width=(W/ZOOM)+'px';app.style.height=(H/ZOOM)+'px';}
+  // (Litty 2026-10-18, 'so small i didnt even see it': tips put on the page itself, outside #app, missed its zoom; --appz
+  // lets them grow with the game, css/zzzzzzzzzzzzzzpopz.css)
+  document.documentElement.style.setProperty('--appz',String(ZOOM));
   if(S&&S.phase=='floor')FLOOR.resize();}
 addEventListener('resize',()=>{clearTimeout(fit.t);fit.t=setTimeout(fit,80);});
 // A phone's screen height: what you can actually see. Safari on an iPhone can report innerHeight with its toolbars
@@ -15273,7 +15324,7 @@ function pocketNudge(){if(DRY||!S)return;if(S.phase!='play'||!R){$$('.pknag').fo
   // (the meter's first-time tip, the core lesson, goes before any pocket nudge: they raced for the hand's one message)
   if(!META.tips.t2_meter&&typeof meterHere=='function'&&meterHere())return;
   R.nag=R.nag||{};if(R.nag[best.c.id])return;const now=Date.now();if(UI.nagT&&now-UI.nagT<20000)return;R.nag[best.c.id]=1;UI.nagT=now;if(typeof teachMark=='function')teachMark();pocketBubble(best);}
-function pocketBubble({el,c,i,h}){$$('.pknag').forEach(e=>e.remove());const d=consDef(c),r=el.getBoundingClientRect();if(!r.width)return;
+function pocketBubble({el,c,i,h}){$$('.pknag').forEach(e=>e.remove());const d=consDef(c),r=el.getBoundingClientRect();if(!r.width||r.right<0||r.left>innerWidth)return;   // (a phone's pocket in its drawer, off the screen: no bubble pointing at nothing, Litty 2026-10-18)
   const b=document.createElement('button');b.className='pknag';b.innerHTML=`<b>${d.n}</b> ${h.w}`;b.style.left=Math.round(r.left+r.width/2)+'px';b.style.top=Math.round(r.bottom+10)+'px';
   b.onclick=()=>{b.remove();if(!S||!S.cons[i])return;UI.sel={k:'cons',i};renderRows();renderInfo();};document.body.appendChild(b);AUD.sfx('tick');
   // (never over the pit boss, the cameras or the felt's pay card: then it sits beside the item, over the row)
@@ -17855,8 +17906,8 @@ const CR={
     if(crBig()){if(!CR.mine())return '';
       return `<button class="btn" id="aRoll" ${busy?'disabled':''}>Quick throw<span class="s">Skip the meter · random roll</span></button>`;}
     const clean='';
-    const sub=V?(c.bets.length?`${money(CR.onTable())} on the layout`:`Puts ${money(R.buy)} on the Pass Line`):playsLeft('shooter');
-    return `${clean}${V&&c.bets.length?`<button class="btn" id="aClr" ${busy?'disabled':''} title="Take your chips back off the layout. Once there is a point, the Pass Line has to stay.">Pick up your bets<span class="s">Chips back to you</span></button>`:''}<button class="btn" id="aRoll" ${busy?'disabled':''}>Quick throw<span class="s">Skip the meter · ${sub}</span></button>`;},
+    const sub=V?(c.bets.length?`${money(CR.onTable())} on the layout`:c.phase=='come'?`Puts ${money(R.buy)} on the Pass Line`:'Bet first: tap a bet'):playsLeft('shooter');
+    return `${clean}${V&&c.bets.length?`<button class="btn" id="aClr" ${busy?'disabled':''} title="Take your chips back off the layout. Once there is a point, the Pass Line has to stay.">Pick up your bets<span class="s">Chips back to you</span></button>`:''}<button class="btn" id="aRoll" ${busy||!CR.canRoll()?'disabled':''}>Quick throw<span class="s">Skip the meter · ${sub}</span></button>`;},
   bind(){const c=R.cr;{const cl=$('#aClean');if(cl)cl.onclick=()=>CR.goClean();}if(c.pending){$('#aRe').onclick=()=>CR.reroll();$('#aTake').onclick=()=>{c.pending=null;CR.toPost();};return;}
     if(c.post){$('#aPay').onclick=()=>{c.postArm=0;CR.payout();};const p=$('#aPost');if(p)p.onclick=()=>{c.postArm=1;render();};return;}
     if($('#aRoll'))$('#aRoll').onclick=()=>CR.quick();if($('#aClr'))$('#aClr').onclick=()=>CR.clear();},
@@ -17931,13 +17982,15 @@ Object.assign(CR,{
  - Crooked dice (loaded/shaved in hand): a suspicion counter, per sitting. Perfect +7, Green +3, any miss or random roll -3
    (out of 21, never below 0). At 21: +1 Heat, reset. Near it (15+) the boxman watches your dice: a toast, once a cycle.
  Zone sizes are exactly the mock-up's HS settings (HS.pPerf, HS.aPerf, HS.pGreen, HS.aGreen). */
-const CTM={S:.86,E:0,SPD:.9*.75,
+// (Litty 2026-10-18: "the meter can be 10% faster": x1.1)
+const CTM={S:.86,E:0,SPD:.9*.75*1.1,
   st:{phase:'idle'},
   mul(){const c=R&&R.cr;return (c&&c.dsRolls?2:1)*(c&&c.steady?2:1);},   // (Dice setting / Steady hand: next phase)
   // (Litty 2026-10-17, "make the gold 20% bigger... same thing on the craps meter (which is two gold zones)": both golds
   // x GK, the greens as they were (the power gold was .02142, the accuracy's .00918 a side). Eye Drops double both golds
   // (ek); a green never narrower than 1.25x its gold. Taken at the throw's start, so a throw keeps its zones)
-  GK:1.2,
+  // (Litty 2026-10-18: "make the gold zone 25% smaller" (craps), then "gold section 10% smaller" twice: 1.2 x .75 x .9 x .9)
+  GK:.729,
   fx(){const s=CTM.st;if(s&&s.ek!=null)return {ek:s.ek,sv:s.sv||1};return typeof mfxNow=='function'?mfxNow():{ek:1,sv:1};},
   pPerf(){return .02142*CTM.GK*CTM.mul()*CTM.fx().ek;},aPerf(){return .00918*CTM.GK*CTM.mul()*CTM.fx().ek;},
   pGreen(){return Math.max(.02142*2.2*CTM.mul(),CTM.pPerf()*1.25);},aGreen(){return Math.max(.00918*2*2.5*CTM.mul(),CTM.aPerf()*2*1.25);},
@@ -17958,6 +18011,9 @@ const CTM={S:.86,E:0,SPD:.9*.75,
   // (Litty 2026-10-17: the finger over a bet read as "press here to throw") armed: the felt throws (a dice cursor),
   // a bet bets (a chip cursor); mid-throw every press throws (the dice cursor everywhere)
   touch(){try{return innerWidth<700||matchMedia('(hover:none) and (pointer:coarse)').matches;}catch(e){return innerWidth<700;}},
+  // (Litty 2026-10-18: "you need to tell the user to bet here, as i dont know why i cant throw the dice": the point is on and
+  // nothing's on the layout, so there's nothing to throw for; a new Pass Line bet waits for the next come-out)
+  betHint(){const c=R&&R.cr;return c&&!c.bets.length&&c.phase!='come'&&!(typeof crBig=='function'&&crBig())?'Bet to throw: tap a number, the Field or a prop.':'';},
   armHint(){return CTM.touch()?'Tap the felt to throw. Tap a bet to bet.':'Press the felt or Space to throw. Tap a bet to bet.';},
   armed(){return CTM.here()&&!CTM.lock&&!CTM.live()&&CR.canRoll();},
   cur(){const t=$('#tin');if(!t)return;const a=!!(R&&R.t=='craps'&&CTM.armed()),l=!!(R&&R.t=='craps'&&CTM.live());
@@ -17998,7 +18054,7 @@ const CTM={S:.86,E:0,SPD:.9*.75,
     const ticks=[...Array(11)].map((_,i)=>`<div class="ctk ${i%5==0?'big':''}" style="left:${pct(S-(S-E)*i/10)}"></div>`).join('');
     const P=s.pops||{},chip=(k,lab)=>P[k]?`<div class="ctpop ${P[k].g} ${k}" data-pop="${k}" style="left:${k=='pow'?'0':pct(S)}">${lab} ${P[k].v}%<small>${P[k].t}</small></div>`:'';
     const busyNow=s.phase=='pow'||s.phase=='acc';
-    const hint=s.phase=='pow'?'Press: power':s.phase=='acc'?'Press: accuracy':CR.canRoll()?CTM.armHint():'';
+    const hint=s.phase=='pow'?'Press: power':s.phase=='acc'?'Press: accuracy':CR.canRoll()?CTM.armHint():CTM.betHint();
     CTM.popsHTML=`${chip('pow','Power')}${chip('acc','Accuracy')}`;
     return `<div class="ctbar"><div class="ctbw"><div class="ctbody"><div class="ctgrey" style="left:${pct(S+.035)};right:0"></div>
       <div class="cttrack" style="left:${pct(E)};width:${pct(S+.035-E)}"></div><div class="ctfill" style="left:${pct(fillL)};width:${pct(S-fillL)}"></div>${ticks}
@@ -29097,7 +29153,8 @@ function nxTick(){
   const rs=els.map(e=>e.getBoundingClientRect());const top=Math.min(...rs.map(r=>r.top)),bot=Math.max(...rs.map(r=>r.bottom)),l=Math.min(...rs.map(r=>r.left)),rt=Math.max(...rs.map(r=>r.right));
   NX_EL.hidden=false;const w=NX_EL.offsetWidth,h=NX_EL.offsetHeight;
   // lots of glowing targets (every line, every horse): park the sentence in the empty end of the dealer bar instead of on top of them
-  const bar=$('#infobar');if(els.length>4&&bar){const b=bar.getBoundingClientRect();NX_EL.style.left=(b.right-w-18)+'px';NX_EL.style.top=(b.top+(b.height-h)/2)+'px';NX_EL.classList.add('side');
+  // (kept on the screen: a phone's bar can sit off it, and the sentence went with it to x -272. Litty 2026-10-18)
+  const bar=$('#infobar');if(els.length>4&&bar){const b=bar.getBoundingClientRect();NX_EL.style.left=Math.max(8,Math.min(innerWidth-w-8,b.right-w-18))+'px';NX_EL.style.top=(b.top+(b.height-h)/2)+'px';NX_EL.classList.add('side');
     // at a table the bar floats over the felt: the sentence parks at the felt's top right, below the item panel when one is open
     const ap=$('#app'),tb=$('#table');if(ap&&tb&&(ap.classList.contains('attable')||ap.classList.contains('floatinfo'))&&!ap.classList.contains('narrow')){const p=nxPark(tb,w,h,els);NX_EL.style.left=p[0]+'px';NX_EL.style.top=p[1]+'px';}
     return;}
@@ -29111,17 +29168,19 @@ function nxTick(){
   if(on(x,y)){const ys=[y,above?bot+14:top-h-14].filter(v=>v>=8&&v+h<=innerHeight-8),xs=[x,...off.flatMap(r=>[r.left-w-10,r.right+10])].filter(v=>v>=8&&v+w<=innerWidth-8&&v<rt&&v+w>l);
     const c=ys.flatMap(yy=>xs.map(xx=>[xx,yy])).find(([xx,yy])=>!on(xx,yy));if(c){x=c[0];if(c[1]!==y){y=c[1];above=y<top;}}}
   // (desktop poker: the felt now ends just under your cards, so "above Play hand" lands on them. Then: the free end of the
-  // button row, beside the controls, else above your hand, clear of the table's message line)
+  // button row, beside the controls, else above your hand, clear of the table's message line. Litty 2026-10-18: grown to
+  // the game's size, over Spin it covered the slot machine's own message line: the same free end of the row then)
   const cards=[...document.querySelectorAll('#tin .card')].filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect());
   const onCards=(x,y)=>cards.some(r=>x<r.right-2&&x+w>r.left+2&&y<r.bottom-2&&y+h>r.top+2);let side=false;
-  if(above&&innerWidth>=1000&&onCards(x,y)&&!$('#app').classList.contains('narrow')&&!document.documentElement.classList.contains('narrow')){const act=[...document.querySelectorAll('#actions > *')].filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect());
+  if(above&&innerWidth>=1000&&(onCards(x,y)||hits(y))&&!$('#app').classList.contains('narrow')&&!document.documentElement.classList.contains('narrow')){const act=[...document.querySelectorAll('#actions > *')].filter(e=>e.getClientRects().length).map(e=>e.getBoundingClientRect());
     const ar=act.length?Math.max(...act.map(r=>r.right)):rt,sx=ar+14,sy=(top+bot)/2-h/2;
     if(sx+w<=innerWidth-8&&!on(sx,sy)){x=sx;y=sy;side=true;}
     else if(cards.length){let yy=Math.min(...cards.map(r=>r.top))-h-12;while(yy>8&&hits(yy))yy-=10;if(yy>8){y=yy;}}}
   NX_EL.style.left=x+'px';NX_EL.style.top=y+'px';NX_EL.classList.toggle('below',!above&&!side);NX_EL.classList.toggle('beside',side);if(typeof nxPhone=='function')nxPhone(NX_EL,els);}
 // a parked sentence keeps off the pay card, the pocket bubble, Bambi's panel and the game itself: the first spot along the
-// felt's top that covers none of them (else the one that covers least)
-const NX_KEEP='#table .paycard,.pknag,#infobar #info:not(.idle),.tip2,#pbEye,#tin .card,#tin button,#tin .btn,#tin [data-n],#tin [data-b6],#tin [data-bet],#tin [data-h],#tin .reel,#tin .vpscreen,#tin .msg,#tin .sleeve';
+// felt's top that covers none of them (else the one that covers least). And the dealer's face: grown to the game's size
+// it parked on him (Litty 2026-10-18)
+const NX_KEEP='#table .paycard,.pknag,#infobar #info:not(.idle),.tip2,#pbEye,#tin .card,#tin button,#tin .btn,#tin [data-n],#tin [data-b6],#tin [data-bet],#tin [data-h],#tin .reel,#tin .vpscreen,#tin .msg,#tin .sleeve,#tDealer .dfig';
 function nxPark(tb,w,h,els){const T=tb.getBoundingClientRect(),z=$('#app').classList.contains('narrow')?1:ZOOM,top=T.top+52*z,g=10*z;
   const keep=[...document.querySelectorAll(NX_KEEP)].concat(els).filter(e=>e.offsetParent!==null||e.getClientRects().length).map(e=>e.getBoundingClientRect()).filter(r=>r.width>2&&r.height>2);
   const pc=$('#table .paycard'),P=pc&&pc.offsetParent!==null?pc.getBoundingClientRect():null,inf=$('#info'),I=inf&&!inf.classList.contains('idle')&&inf.offsetHeight?inf.getBoundingClientRect():null;
@@ -34510,8 +34569,9 @@ const CM_OUT={green:'clean',red:'seen'},CM_RANK={red:0,green:1};
 // (CM_GOLD, its half-width: 1/40); it was the middle quarter, 1/8 a side)
 // (Litty 2026-10-17, "make the gold 20% bigger": every gold +20%, drawn and judged alike. CM_GOLD was 1/40,
 // CM_GOLD_MS 8.5, CM_GOLD_CAP .25: all x CM_GOLD_K)
-const CM_GOLD_K=1.2;
-const CM_GOLD=.03;   // the gold's half-width, as a share of the green (its least; 1/40 x1.2)
+// (Litty 2026-10-18: "10% smaller gold sections on all meters": 1.2 x .9)
+const CM_GOLD_K=1.08;
+const CM_GOLD=CM_GOLD_K/40;   // the gold's half-width, as a share of the green (its least; 1/40 x CM_GOLD_K)
 /* (Litty 2026-10-14, round 2: "make sure if i land on the middle gold bar (in the green) that i get full nerve. It worked
  once, but I thought i just landed on it and it didnt give it to me." At 60 fps the needle moves ~17 ms of its sweep a
  frame and the window was ~6 ms across: a stop that LOOKED on the line missed two times in three.) Now the line you see is
@@ -34525,7 +34585,7 @@ const CM_GOLD=.03;   // the gold's half-width, as a share of the green (its leas
  it at least once), never under CM_GOLD_LINE px a side (so it can be drawn), never over CM_GOLD_CAP of the green a side
  (a skill shot). Both minimums are drawn: what you see is the window. t.gh: the half-width (share of the bar, or of the
  Blink's cycle); the Cooler's, t.gms (ms) */
-const CM_GOLD_MS=10.2,CM_GOLD_CAP=.3,CM_GOLD_LINE=1.5;
+const CM_GOLD_MS=8.5*CM_GOLD_K,CM_GOLD_CAP=.25*CM_GOLD_K,CM_GOLD_LINE=1.5;
 // the gold's half-width for a green g on a sweep of ms (vk: the needle's fastest over its average, a surging reel; ek:
 // Eye Drops' x2, never past .45 of the green a side)
 const cmGoldH=(g,ms,vk=1,ek=1)=>g>=1?0:Math.min(g*.45,ek*Math.min(g*CM_GOLD_CAP,Math.max(g*CM_GOLD,CM_GOLD_MS*vk/Math.max(1,ms))));
@@ -41574,10 +41634,13 @@ function bsFit(){const el=document.getElementById('bstage');if(!el||el.hidden||e
     b.style.left=Math.round(at[0]/z)+'px';b.style.bottom=Math.round((H-at[1]-bh)/z)+'px';el.classList.add('bsfar');el.classList.toggle('bsside',at[2]<2);el.dataset.bsat=at[2];return;}
   el.classList.remove('bsside');
   const cp=R0('#cheatPanel')||R0('#frCost'),hd=R0('#pkHand')||R0('#tin .hand'),ac=R0('#actions'),sl=R0('#tin .pkslv');let r=b.getBoundingClientRect();
+  // (Litty 2026-10-18, 'look for other similar issues': the Big Six wheel (its canvas) and its slots, and
+  // the craps throw meter were not in the way, and she sat on them. Hold'em's felt has no open spot: she keeps the one
+  // over its play by play, which covers no card)
   // (2026-10-16 visual pass: at 21 the hand isn't a .hand, and her bubble sat on the sleeve card and your Ace. Every card,
   // reel, die and result line on the felt is in the way now, not just Pick Five's hand)
   const vis=e=>e.getClientRects().length&&getComputedStyle(e).visibility!='hidden';
-  const pcs=[...document.querySelectorAll('#tin .card,#tin .reel,#tin .vpscreen,#tin .die,#tin .resl,#tin .hand,#tin [id$=Msg],#tin .b21std,#tin .serduel,#tin .stall>.sh,#tin .sc,#tin .sc .price,#tin button,#tin .pcell,#tin .vpm,#tin .hpay,#tin .door,#tin .shophead')].filter(vis).map(bsClip).filter(o=>o&&o.right>o.left&&o.bottom>o.top);
+  const pcs=[...document.querySelectorAll('#tin .card,#tin .reel,#tin .vpscreen,#tin .die,#tin .resl,#tin .hand,#tin [id$=Msg],#tin .b21std,#tin .serduel,#tin .stall>.sh,#tin .sc,#tin .sc .price,#tin button,#tin .pcell,#tin .vpm,#tin .hpay,#tin .door,#tin .shophead,#tin canvas,#crMeter,#tin [data-b6]')].filter(vis).map(bsClip).filter(o=>o&&o.right>o.left&&o.bottom>o.top);
   const obs=[cp,hd,ac,sl,...pcs].filter(Boolean),clear=q=>!obs.some(o=>hit(q,o));
   if(clear(r))return;
   const floor=Math.min(hd?hd.top:innerHeight,ac?ac.top:innerHeight,innerHeight);
@@ -42095,7 +42158,8 @@ function ctShow(b){const i=ctInfo(b);if(!i.line)return;const el=ctEl();CT_FOR=b;
   // (2026-10-16: no cost here, the button's Nerve coin says it; a greyed move says when it comes instead)
   const wh=(b.disabled||b.classList.contains('nv-no'))&&b.dataset.when&&!/Nerve/.test(b.dataset.when)?b.dataset.when:'';
   el.innerHTML=`<b>${i.name}</b>${wh?`<em>${wh}</em>`:''}<span>${i.line}</span>`;el.hidden=false;
-  const r=b.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let x=r.right+10,y=r.top+r.height/2-h/2;
+  // (beside the CHEAT box, not over its edge: grown to the game's size it reached back over it, Litty 2026-10-18)
+  const r=b.getBoundingClientRect(),pr=(b.closest('#cheatPanel')||b).getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let x=Math.max(r.right,pr.right)+10,y=r.top+r.height/2-h/2;
   if(x+w>innerWidth-8)x=Math.max(8,r.left-w-10);if(x<8)x=8;y=Math.max(8,Math.min(innerHeight-h-8,y));
   if(innerWidth<700){x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2));y=r.top-h-10;if(y<8)y=r.bottom+10;}
   el.style.left=Math.round(x)+'px';el.style.top=Math.round(y)+'px';}
@@ -42128,7 +42192,13 @@ function narLine(key){const L=NARR[key];if(!L||!L.length)return '';let i=Math.fl
 // over the felt, for a moment with no pop-up of its own (the jackpot): an italic line under the middle, then it goes
 function narSay(key,ms=4200){const t=typeof key=='string'&&NARR[key]?narLine(key):String(key||'');if(!t||(typeof DRY!='undefined'&&DRY)||(typeof SPEED!='undefined'&&SPEED<.05))return '';
   let el=document.getElementById('narSay');if(!el){el=document.createElement('div');el.id='narSay';el.setAttribute('role','status');document.body.appendChild(el);}
-  el.textContent=t;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(narSay.t);narSay.t=setTimeout(()=>el.classList.remove('on'),ms);return t;}
+  el.textContent=t;el.classList.remove('on');el.style.top='';el.style.bottom='';void el.offsetWidth;el.classList.add('on');narFit(el);clearTimeout(narSay.t);narSay.t=setTimeout(()=>el.classList.remove('on'),ms);return t;}
+// (Litty 2026-10-18, 'look for other similar issues': under the middle it sat on the slot machine's reels at the jackpot.
+// On the game: the top of the felt instead, if that's clear)
+const NAR_KEEP='#tin .reel,#tin .card,#tin .die,#tin canvas,#tin button,#tin .msg,#actions button,#cheatPanel';
+function narFit(el){const hit=()=>{const r=el.getBoundingClientRect();return [...document.querySelectorAll(NAR_KEEP)].some(e=>{if(!e.getClientRects().length)return false;const q=e.getBoundingClientRect();return q.right>r.left&&q.left<r.right&&q.bottom>r.top&&q.top<r.bottom;});};
+  if(!hit())return;const tb=document.getElementById('table'),T=tb&&tb.getClientRects().length?tb.getBoundingClientRect():null;if(!T)return;
+  el.style.bottom='auto';el.style.top=Math.round(T.top+12)+'px';if(hit()){el.style.top='';el.style.bottom='';}}
 setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{NARR,narLine,narSay});},0);
 
 // ===== 99zo-mentor.js
@@ -42664,7 +42734,8 @@ function renderBooth(){const m=mnS();if(!m){UI.shopView=null;return renderShop()
   $('#tin').innerHTML=`<div class="pane shoppane roompane boothpane bth3 bth4"><div class="mnhead"><div class="mnti"><h2>The Back Booth</h2><div class="mnhint">${UI.mnNewc&&UI.mnNewc.length?'New tables, new cheats.':'Drag a card to a slot.'}</div></div>
     <div class="sub">${walletHTML()}</div></div>
     <div class="mnbody"><div class="mnstrip">${mnStripHTML()}</div><div class="mnrows">${mnRowsHTML()}</div></div></div>`;
-  if(taught){sfx('buy');toast(UI.mnSay,2600);mnGlint(taught);}
+  // (Pops says it himself, on the stage like his other lines, not in a toast: Litty 2026-10-18, one style for their lines)
+  if(taught){sfx('buy');bambiLine(UI.mnSay,4500,'pops');mnGlint(taught);}
   if(UI.mnNewc&&UI.mnNewc.length&&UI.mnNewcG!==UI.mnNewc){UI.mnNewcG=UI.mnNewc;UI.mnNewc.forEach((id,i)=>setTimeout(()=>{const k=$(`#tin .mnic[data-known][data-mnid="${id}"]`);if(k&&typeof glintAt=='function')glintAt(k);},300+i*260));}
   const P=$('#tin .boothpane');
   P.onclick=async e=>{if(busy||Date.now()-(UI.mnDragT||0)<350)return;
