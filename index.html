@@ -20406,6 +20406,17 @@ const HR={
    A stadium-shaped dirt oval seen from far up, squashed by T for the tilt. They break from a gate on the back stretch,
    run right-to-left along the top, round the far turn (left) and come home left-to-right past the grandstand. */
   OV:{CX:500,CY:250,A:245,Ri:130,Ro:215,T:.68,Rc:172},
+  // The picture is 1000x630; the track shows the part of it that fills the frame. A wide track (a wide screen) can't show
+  // it all: it used to lose the top and the bottom evenly, which cut off the back stretch's runners (their heads, cloths
+  // and YOU marker stand up to 55 above the top lane, y 110) and the gate, and the cameras aimed as if the whole picture
+  // showed, so the gate shot missed high (Litty 2026-10-18, "horses are cut off"). Now the window keeps y OV_TOP and
+  // below (the grandstand gives up a little instead), and the cameras aim in that window.
+  OV_TOP:48,
+  ovBox(){const s=$('#tin .hx-ovs'),p=s&&s.parentNode,w=p&&p.clientWidth,h=p&&p.clientHeight;if(!w||!h)return HR._vb||{x:0,y:0,w:1000,h:630};
+    let x=0,y=0,W=1000,H=630;if(w/h>1000/630){H=1000*h/w;y=Math.max(0,Math.min(315-H/2,HR.OV_TOP));}else{W=630*w/h;x=(1000-W)/2;}
+    const vb=[x,y,W,H].map(v=>+v.toFixed(2)).join(' ');if(s.getAttribute('viewBox')!==vb)s.setAttribute('viewBox',vb);return HR._vb={x,y,w:W,h:H};},
+  // a point of the picture as a fraction of the track's frame (what the camera aims at)
+  ovF(x,y,z){const b=HR._vb||HR.ovBox();return {x:(x-b.x)/b.w,y:(y-b.y)/b.h,z};},
   ovLen(){const o=HR.OV;return [1.75*o.A,Math.PI*o.Rc,1.45*o.A];},
   ovPt(f,lane){const o=HR.OV;const [L1,L2,L3]=HR.ovLen();let s=Math.max(0,f)*(L1+L2+L3);const rl=o.Ri+15+lane*12;
     if(s<L1)return [o.CX+.75*o.A-s,o.CY-rl*o.T,-1];s-=L1;
@@ -20480,7 +20491,9 @@ const HR={
   render(){renderDealer('horses');const r=R.hr;
     let w=$('#tin .hx-wrap');
     if(!w||+w.dataset.race!==r.id){$('#tin').innerHTML=`<div class="hx-wrap" data-race="${r.id}">${HR.trackHtml()}<div class="hx-side"></div></div>`;w=$('#tin .hx-wrap');
-      $$('#tin [data-ht]').forEach(e=>e.onclick=()=>HR.tapHorse(+e.getAttribute('data-ht')));HR.ovPaint();HR.camSet(HR.camGoal(),1);
+      $$('#tin [data-ht]').forEach(e=>e.onclick=()=>HR.tapHorse(+e.getAttribute('data-ht')));HR.ovBox();HR.ovPaint();HR.camSet(HR.camGoal(),1);
+      // the frame changes shape (a resize, the card folding under on a phone): a new window on the picture
+      if(window.ResizeObserver){const tk=$('#tin .hx-track');if(tk)new ResizeObserver(()=>{if(!R||!R.hr||!tk.isConnected)return;HR.ovBox();if(R.hr.view=='oval')HR.camSet(HR.camGoal(),1);}).observe(tk);}
       // a tap anywhere on the track skips the Call to the Post
       const tk=$('#tin .hx-track');if(tk)tk.addEventListener('pointerdown',()=>HR.skipIn());
       // the Family's text: dismiss it with the x; its phone buzzes once
@@ -20600,16 +20613,17 @@ const HR={
   camGoal(){const r=R.hr;
     if(r.view=='close'){const lead=Math.max(...r.field.map(h=>h.x));const nose=h=>.035+.15+HR.cp(h)*(.84-.185);
       // on the wire (all six lanes in frame, so a photo shows the top lanes too)
-      if(lead>=83||r.frozen)return {x:.74,y:.545,z:1.34};
+      // (the frame's top at .145 of the world keeps the top lane's runner and its YOU tag, from .16; its bottom at .9, lane six)
+      if(lead>=83||r.frozen)return {x:.74,y:.524,z:1.32};
       // on the leaders: the first three, a little ahead of them
-      const ns=HR.ranks().slice(0,3).map(k=>nose(r.field[k]));const L=Math.max(...ns),M=Math.min(...ns);return {x:Math.max(.42,(L+M)/2+.03),y:.57,z:1.22};}
+      const ns=HR.ranks().slice(0,3).map(k=>nose(r.field[k]));const L=Math.max(...ns),M=Math.min(...ns);return {x:Math.max(.42,(L+M)/2+.03),y:.54,z:1.22};}
     // the Call to the Post: in close on the starting gate
-    if(r.gate==1){const o=HR.OV;return {x:(o.CX+.75*o.A)/1000,y:(o.CY-(o.Ro+o.Ri)/2*o.T)/630,z:2.15};}
+    if(r.gate==1){const o=HR.OV;return HR.ovF(o.CX+.75*o.A,o.CY-(o.Ro+o.Ri)/2*o.T,2.15);}
     if(r.phase=='pick'||r.phase=='done')return {x:.5,y:.5,z:1};
     const P=r.field.map(h=>HR.ovPt(h.x/92,h.i));
-    if(r.phase=='turn'&&r.pick!=null){const [x,y]=P[r.pick];return {x:x/1000,y:(y-14)/630,z:1.85};}
+    if(r.phase=='turn'&&r.pick!=null){const [x,y]=P[r.pick];return HR.ovF(x,y-14,1.85);}
     const lead=r.field.reduce((a,h)=>h.x>a.x?h:a);const [lx,ly]=P[lead.i];const mx=P.reduce((a,p)=>a+p[0],0)/6,my=P.reduce((a,p)=>a+p[1],0)/6;
-    return {x:(lx*.6+mx*.4)/1000,y:((ly*.6+my*.4)-12)/630,z:1.5};},
+    return HR.ovF(lx*.6+mx*.4,(ly*.6+my*.4)-12,1.5);},
   camSet(c,snap){const r=R.hr;if(snap)r.cam={...c};const w=HR.camEl();if(!w)return;const z=r.cam.z;
     const tx=clamp(50-z*r.cam.x*100,100-100*z,0),ty=clamp(50-z*r.cam.y*100,100-100*z,0);
     w.style.transform=`translate(${tx.toFixed(3)}%,${ty.toFixed(3)}%) scale(${z.toFixed(4)})`;},
