@@ -13724,8 +13724,9 @@ const CREW={
     q:'Drives down from Reno every Friday. Always one heart short.',async hand(X){if(X.flush)await X.p(20);}},
   halfj:{n:'Short-Stack Shorty',r:'the Small Player',rar:1,$:5,tb:['poker','bj'],d:'+30% pay on wins of 3 cards or fewer.',a:{g:'m',hair:'bald',hc:'#3a2414',out:'suit',oc:'#2a8a5a',mouth:'grin',acc:['cigar']},
     q:'Five-foot-two, bets like he\'s seven feet tall.',async hand(X){const n=(X.played||X.cards||[]).length;if(n>0&&n<=3&&crewHere('halfj',X))await X.p(30);}},
-  valet:{n:'Valet Vern',r:'the Parker',rar:1,$:5,tb:['any'],d:()=>`+5% pay per ${xMoves(1)} you have left or can afford.`,a:{g:'m',hair:'slick',hc:'#3a2414',out:'vest',oc:'#c71f3d',hat:'cap',hatc:'#c71f3d'},
-    q:'Parks your car in Reno. Brings it back eventually.',async hand(X){if(R.disc>0)await X.p(5*R.disc);}},
+  valet:{n:'Valet Vern',r:'the Parker',rar:1,$:5,tb:['any'],d:'+5% pay for each Nerve you hold.',a:{g:'m',hair:'slick',hc:'#3a2414',out:'vest',oc:'#c71f3d',hat:'cap',hatc:'#c71f3d'},
+    q:'Parks your car in Reno. Brings it back eventually.',// (Litty 2026-10-19: "dont understand this perk": paid on the Nerve you're holding, not table moves left)
+    async hand(X){const n=nerveOn()?nvS().n:R.disc;if(n>0)await X.p(5*n);}},
   lastcall:{n:'Last-Call Lucy',r:'the Closer',rar:1,$:5,tb:['any'],d:()=>`+25% pay when your ${xMoves(2)} are used up or unaffordable.`,a:{g:'f',hair:'bob',hc:'#1b120c',out:'vest',oc:'#111',mouth:'smirk',lip:'#c71f3d'},
     q:'Vegas bars never close. She calls last call anyway.',async hand(X){if(R.disc<=0)await X.p(25);}},
   uncle:{n:'Drunk Uncle Earl',r:'the Wild Card',rar:1,$:4,tb:['any'],d:'+0% to +40% pay. Nobody knows.',a:{g:'m',hair:'bald',hc:'#bfc0c8',out:'open',oc:'#e05a9a',mouth:'o',blush:1,gl:'round'},
@@ -21925,7 +21926,9 @@ const HE={
     const li=h.opp.map((o,i)=>o.in?i:-1).filter(i=>i>=0);h.spy=crewOn('signal')?pick(li):null;h.spy2=h.spy!=null&&setupOn('wired')&&li.length>1?pick(li.filter(i=>i!=h.spy)):null;
     for(let k=0;k<2;k++){h.me.push(HE.draw());for(const o of live)o.hole.push(HE.draw());}sfx('deal');live.forEach(o=>o.tell=HE.tell(o));heFeedNew();
     h.msg=t.hand==0?`<b>Everyone has ${fmt(HE_STACK)}.</b> Last one standing wins.`:HE.tUp(t.hand)?`The ante goes up to <b>${fmt(a)}</b>.`:'Your 2 cards are dealt.';
-    h.phase='act';busy=false;render();if(HE.tAuto())return HE.tNext();},
+    // the ante puts someone all in before anyone can bet: say so, or it looks like it plays itself (Litty 2026-10-19)
+    h.anteAll=HE.tAuto();if(h.anteAll){h.msg='<b>All in on the ante.</b> No betting. The cards decide.';dealerSay(pick(['Antes that big, the cards do the talking.','No betting this one. Show them.','The ante took it all. Run them out.']));}
+    h.phase='act';busy=false;render();if(h.anteAll)return HE.tNext();},
   // you act (0 check, 2 bet, 6 bet big); the others call, fold, or (when you check) one may bet into you
   async tAct(size){const h=R.he;if(busy||h.phase!='act')return;const a=HE.tAnte();
     busy=true;h.lastBig=size==6;h.bluffing=!!size&&heStrength(h.me,h.board)<.4;if(size&&h.street==0)h.preBet=1;if(size==6)h.bigN=(h.bigN||0)+HE_BIG_BET;
@@ -21962,7 +21965,7 @@ const HE={
     return HE.live().length<2?HE.tTake():HE.tShow();},
   async tNext(){const h=R.he;busy=true;if(h.street>=3)return HE.tShow();
     h.street++;const n=h.street==1?3:1;for(let i=0;i<n;i++)h.board.push(HE.draw());sfx('deal');heFeedSt(STREETS[h.street]);HE.live().forEach(o=>o.tell=HE.tell(o));
-    const auto=HE.tAuto();if(auto&&h.crAllIn!==h.tour.hand){h.crAllIn=h.tour.hand;crowd('ooh',.5);}h.msg=auto?'<b>All in.</b> Running it out.':['','The flop.','The turn.','The river.'][h.street];   // (Litty 2026-10-16: the run-out says why the cards just come)
+    const auto=HE.tAuto();if(auto&&h.crAllIn!==h.tour.hand){h.crAllIn=h.tour.hand;crowd('ooh',.5);}h.msg=auto?(h.anteAll?'<b>All in on the ante.</b> No betting. The cards decide.':'<b>All in.</b> Running it out.'):['','The flop.','The turn.','The river.'][h.street];   // (Litty 2026-10-16: the run-out says why the cards just come)
     if(auto)h.phase='run';const slow=h.street==3&&await HE.river();if(!R||R.he!==h)return;
     if(auto){render();await sleep(slow?150:650);return HE.tNext();}
     h.phase='act';busy=false;render();},
@@ -40620,7 +40623,7 @@ const FR_LINES={
   nv2:'"Cheating costs nerve. Run out, and you\'re just gambling."',
   med:'"Bet bigger, it builds faster. Tap Medium."',                 // step 3's beat: the bet control's Medium (87-bets.js)
   suit:"\"See that camera? Doesn't work.\"",
-  suitPB:'"The pit boss does."',   // (Litty 2026-10-16: said only once the camera pans to the pit boss)   // (Litty 2026-10-13: Charlie's camera is broken)
+  suitPB:'"But the pit boss does."',   // (Litty 2026-10-16: said only once the camera pans to the pit boss)   // (Litty 2026-10-13: Charlie's camera is broken)
   done:'"Three Heat, you\'re caught. Caught three times, Vegas is done with you."',   // (Litty 2026-10-16: heat vs caught was unclear)
   easy:'"Small cheats are easy. Big ones? Your hands start shaking."',
   gift:'"Here. A little something for your sleeve."',
@@ -42191,7 +42194,7 @@ const MN_LINES={
   learned:['Practice it on Charlie. He\'s seen worse.','Good. Now forget where you learned it.','That\'s yours now. Don\'t get greedy with it.'],
   none:'That\'s everything I know. The rest is nerve.',
   pick:'Three moves a table. More than that, you\'re juggling.',
-  alley:'Bambi says you\'ve got hands. Pick one.',
+  alley:'Bambi vouched for you. This one\'s on the house.',   // (Litty 2026-10-19: a better line than "Bambi says you've got hands. Pick one.")
   cash:'Cash up front. I don\'t do credit.',
   // (Litty 2026-10-18: what Bambi means by "what Pops taught you about reading opponents": he says it at the first tell you see)
   read:'"Watch the hands, kid. The face lies."'};
