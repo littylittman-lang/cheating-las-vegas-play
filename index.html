@@ -23669,7 +23669,17 @@ async function enterCasino0(){sfx('door');delete S.flags.opening;
   // out for a while: who's sick, away or broken tonight, once a night, before you pick a table (85b-out.js)
   if(S.shift==0){busy=true;await outRoll();busy=false;}
   S.phase='floor';render();saveRun();busy=true;await revealFloor();busy=false;
-  (S.flags.newSeen=S.flags.newSeen||{})[S.casino]=1;S.flags.chipsTaught=1;}
+  (S.flags.newSeen=S.flags.newSeen||{})[S.casino]=1;S.flags.chipsTaught=1;bossHeads();}
+// (Litty 2026-10-19, the Count's 000 "do we say that anywhere before the big game?"): walking into a casino, Bambi gives
+// you the boss's rule, once a casino a run, so you can plan for it. Not on the first run's first casino (her tour has it)
+const BOSS_HEADS={charlie:'Charlie\'s house edge: his wins pay ten percent more.',eye:'Big Sal sees everything. Every Made is two heat.',
+  doris:'Doris reshuffles every deal. No counting, no redraws.',klein:'Klein\'s a numbers man. Your first crew takes a double cut.',
+  surveil:'Ivan\'s cameras see more. The blind spot\'s a third smaller.',count:'The Count\'s wheel has a third zero. The house likes those odds.',
+  needle:'Sheila plays one game. Win it or go home.',cuffs:'Cuffs takes a Reroll off you. Make them count.',
+  fed:'Fedderman\'s a fed. Every fifth play, one more heat.',lefty:'Lefty remembers. Three wins on one bet, the third pays nothing.',
+  whalewife:'Margot calls a side each hand. Her side pays half.',don:'The Don\'s table. Two cameras, and he leans on your crew.'};
+function bossHeads(){try{if(!S||S.practice||!S.boss||!BOSS_HEADS[S.boss]||(SHIFTS[S.shift]&&SHIFTS[S.shift].boss))return;const k=S.casino+':'+S.boss,f=S.flags.bossHeads=S.flags.bossHeads||{};
+  if(f[k]||(S.flags.fr&&S.casino==0))return;f[k]=1;saveRun();setTimeout(()=>{if(S&&S.phase=='floor')bambiLine(BOSS_HEADS[S.boss],7000);},1200);}catch(e){}}
 /* ---------- a shift at a table ---------- */
 // (Litty 2026-10-13: 'never change the deck on the user'.) Mr. Plant's and Madame Heartless's dead cards are for their
 // Big Game only: PK.start marks them on S.deck, and only a win used to wipe them, so a loss or Ruby's save left faces
@@ -43609,7 +43619,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{tbNeed,tbQu
       "Three and four on top. That's a 7." (OK)
    6. "Want to try? Practice roll, nothing on it. Tap the felt." One practice roll: the meter as usual, no bet, no
       Nerve, no Heat, no roll counted (33c-crthrow.js CTM.freeRoll).
-   7. the result ("Perfect. That's a 7." / "Good. Each die holds your set half the time." / "Missed. Anybody's roll.") with
+   7. the result ("Perfect. That's a 7." / "That throw was Good, not Perfect. Each die had a 50/50 shot." / "Missed. Anybody's roll.") with
       Keep practicing (another practice roll, as many as you like) and Play for real (the end).
    8. after Play for real, with the side bets showing (the default, Litty 2026-10-16): Fewer bets lit, "Too busy? Fewer
       bets hides the long shots." (OK). Then "Ike's Dice Room out back sells loaded dice." (In the walk-over its own
@@ -43620,7 +43630,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{tbNeed,tbQu
 const CD_LINES={cdIn:'"Craps. The only game where your hands do the work."',cdMeter:'"This is your throwing meter."',cdShow:'"I\'ll show you."',
   cdNail:'"Nail both, and the dice land on the faces you set."',cdSet:'"Before each throw, set your dice. Like this."',
   cdSeven:'"{A} and {b} on top. That\'s {an} {n}."',cdTry:'"Want to try? Practice roll, nothing on it. Tap the felt."',
-  cdAgain:'"Set your dice, then press anywhere."',cdP:'"Perfect. That\'s {an} {n}."',cdG:'"Good. Each die holds your set half the time."',
+  cdAgain:'"Set your dice, then press anywhere."',cdP:'"Perfect. That\'s {an} {n}."',cdG:'"That throw was Good, not Perfect. Each die had a 50/50 shot."',
   cdX:'"Missed. Anybody\'s roll."',cdAlley:'"Ike\'s Dice Room out back sells loaded dice."',
   cdFewer:'"Too busy? Fewer bets hides the long shots."'};
 // (her lines sit with the first run's, so the line rules check them: tools/tfirstrun.js)
