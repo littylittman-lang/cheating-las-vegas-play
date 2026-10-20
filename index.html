@@ -17057,7 +17057,11 @@ const PK={
     // Bambi knows Charlie's marks (Litty 2026-10-18: "first hand at Charlie's"): the first hand you can hear it (the first
     // run's scripted hands go first: its first free hand), Charlie's deck only; a busy moment tries again on the next render
     if(!p.mkT&&S.casino==0&&!S.practice&&(S.startDeck||'charlie')=='charlie'&&mk&&!(S.flags.said&&S.flags.said.l_marks)&&typeof teach=='function'&&typeof FR_LINES!='undefined'
-      &&!(typeof frScript=='function'&&frScript()&&!(typeof FR!='undefined'&&FR.step>=7))){p.mkT=1;setTimeout(()=>{p.mkT=0;try{if(R&&R.t=='poker'&&S.phase=='play'&&!busy){bossHeadsYield();teach('l_marks',FR_LINES.marks);}}catch(e){}},1500);}
+      &&!(typeof frScript=='function'&&frScript()&&!(typeof FR!='undefined'&&FR.step>=7))){p.mkT=1;setTimeout(()=>{p.mkT=0;try{if(R&&R.t=='poker'&&S.phase=='play'&&!busy){bossHeadsYield();
+      // (Litty 2026-10-20: as she says it, the next card up is one of them, so you see a mark: a marked card she can
+      // read moves to the top of the draw pile, the deck itself unchanged)
+      const P=R.pk,top=P&&P.draw.length?P.draw[P.draw.length-1]:null;if(P&&!(top&&top.sc&&canReadScuff(top))){const i=P.draw.findIndex(c=>c.sc&&canReadScuff(c));if(i>=0){const c=P.draw.splice(i,1)[0];P.draw.push(c);render();}}
+      teach('l_marks',FR_LINES.marks);}}catch(e){}},1500);}
     const pile=nx?`<div class="deckpile"><div class="pstack">${backHTML()}${backHTML()}</div><div class="flip ${el2<2600?'go':''}" style="animation-delay:-${Math.min(el2,2600)}ms"><div class="fb">${backOf(nx)}</div><div class="ff">${cardHTML(nx)}</div></div>${(pl=>`<div class="plbl${pl==dn?' plain':''}">${pl}</div>`)(p.peek?dn:marksOnly(nx)?'Your mark. Know what it is?':read?`Next up: the <b>${cardName(nx)}</b>.`:nx.sc&&freshDecks()?'Fresh deck here: your marks don\'t show.':dive&&isScuffed(nx)?'Marked. You can\'t read it.':dn)}${mk?`<div class="pmk" title="Marked cards: you can read their backs">${mk} marked</div>`:''}</div>`:'';
     const pn=Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0);
     // The Signal: Sid, behind the dealer, calls the next 2 cards through your earpiece
@@ -45605,6 +45609,21 @@ function lotCagePop(){const p=$('#shoppop'),key=UI.shopSel;if(!p||!key||!S||S.ph
     if(isLook)await buyLook(o);else await buy(key);};}
 
 setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{LOT_OPEN,LOT_PLAN,LOT_LINES,lotTarget,lotState,lotHas,lotKeyOpen,lotSay,lotCageChips,lotCageAsk});},0);
+/* ---------- Get Cash (Litty 2026-10-20: "i have no way of getting cash to buy pops cheats... just have a simple button
+ that says Get Cash... and that trades your chips for cash"): in the back lot, Pops' Booth and the crafting rooms, while
+ you hold chips and the lot's Cage button isn't showing. Half or all of your chips into your bankroll, at the cage's
+ cash-out rate (82-chips.js outCut, outBank, chipsToBank: the same as the Cage's Cash out) ---------- */
+async function getCash(){if(!S)return;const ch=Math.max(0,S.chips||0);if(!(ch>0))return;
+  const outs=[...new Set([Math.floor(ch/2),ch].filter(x=>x>0))].sort((x,y)=>x-y);
+  const v=await ask(`<div class="xchg getcash"><div class="lbl">The cage at ${casinoOf().n}</div><h2>Get cash</h2><p>Chips into your bankroll, less ${Math.round(outCut()*100)}%.</p>
+    <div class="xrate"><span>Bankroll <b>${money(Math.max(0,bankroll()))}</b></span><span>Chips <b>${chipFmt(ch)}</b></span></div>
+    <div class="row xrow">${outs.map(c=>`<button class="btn sm gd" data-v="c:${c}">${c==ch?'All of it':'Half'}<span class="s">+${mshort(outBank(c))} cash</span></button>`).join('')}</div>
+    <div class="row"><button class="btn" data-v="x">Never mind</button></div></div>`,'howov xov');closeOv();
+  if(!v||!v.startsWith('c:'))return;const c=+v.split(':')[1];if(!(c>0)||c>S.chips)return;chipsToBank(c);sfx('register');saveRun();render();}
+const getCashOn=()=>!!(S&&S.phase=='shop'&&(S.chips||0)>0&&!$('#bXchg'));
+{const r0=render;render=function(){const v=r0.apply(this,arguments);try{const a=$('#actions');if(a&&getCashOn()&&!$('#bGetCash')){
+    a.insertAdjacentHTML('afterbegin',`<button class="btn gd" id="bGetCash">Get Cash<span class="s">Trade chips for cash</span></button>`);$('#bGetCash').onclick=getCash;}
+  else if(!getCashOn()&&$('#bGetCash'))$('#bGetCash').remove();}catch(e){console.error(e);}return v;};}
 
 boot();
 })();
