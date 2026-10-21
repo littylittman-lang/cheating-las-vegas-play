@@ -4587,7 +4587,7 @@ body:has(#cmeter) #gltip{visibility:hidden}
 
 /* ===== round 3 (Litty 2026-10-10) ===== */
 /* your hands feel the cameras: red, a tense tremor; green, still (the pose comes from 97g onZone) */
-#cmeter.cmscene[data-zone=red] .cmh:not(.pb) .cmhk{animation:cmtrem .12s steps(2,end) infinite}
+#cmeter.cmscene .cmh[data-pose=red]:not(.pb) .cmhk{animation:cmtrem .12s steps(2,end) infinite}
 @keyframes cmtrem{0%{transform:scale(var(--k)) translate(.7px,-.5px) rotate(.6deg)}100%{transform:scale(var(--k)) translate(-.7px,.4px) rotate(-.5deg)}}
 #cmeter.cmscene:is(.clean,.seen,.rm) .cmh .cmhk{animation:none!important}
 @media (prefers-reduced-motion:reduce){#cmeter.cmscene .cmh .cmhk{animation:none!important}}
@@ -9792,8 +9792,10 @@ body.mndrag,body.mndrag *{cursor:grabbing!important}
 :is(#cmeter,#cmgal) .cmsk-pan .cmneedle{z-index:9;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 0 1.5px #000,0 0 0 2.5px #fff6}
 /* where it looks (97g cmLook, data-eye): its LED lit when it sees you, off when it has turned away (away, gold: Clean
  Hands). (Litty 2026-10-14: no yellow, so no flickering half-turn) */
-:is(#cmeter,#cmgal) .cmsk-pan[data-eye=see] .cmsecled{fill:#ff2438;filter:drop-shadow(0 0 2.5px #ff2438)}
-:is(#cmeter,#cmgal) .cmsk-pan:is([data-eye=away],[data-eye=gold]) .cmsecled{fill:#2a1a1e}
+/* (2026-10-20: keyed on the LED's own data-eye, not the monitor's: flipping it on the monitor restyled it, about 5 ms at 4x CPU in
+ the frame into the green) */
+:is(#cmeter,#cmgal) .cmsk-pan .cmsecled[data-eye=see]{fill:#ff2438;filter:drop-shadow(0 0 2.5px #ff2438)}
+:is(#cmeter,#cmgal) .cmsk-pan .cmsecled:is([data-eye=away],[data-eye=gold]){fill:#2a1a1e}
 :is(#cmeter,#cmgal) .cmsk-pan.seen .cmsecled{fill:#ff7a86;animation:none}
 /* the table: clear of the x in the top right; with the watcher in the top left, the move's name goes to the top right */
 #cmeter.cmtable .cmsec.r:not(.pbw){left:calc(100% - 52px)}
@@ -11422,6 +11424,17 @@ html.cmup #cmeter.luck .llekg::before{content:'';position:absolute;top:0;bottom:
 html.cmup #cmeter.luck:is(.still,.rm,.flat) .llekg::before{animation:none}
 html.cmup #cmeter.luck.flat .llekg::before{display:none}
 html.cmup #cmeter.luck.flat .llekg{background:linear-gradient(#0000 calc(50% - 1.5px),#ff5a6a calc(50% - 1.5px) calc(50% + 1.5px),#0000 calc(50% + 1.5px)),linear-gradient(#0000,#1a0006cc 40%,#000)}
+/* the hands' two poses (97g onZone, Litty 2026-10-20: "it hitches when it hits the green"): both drawn once, each on its
+   own layer; the zone under the needle shows one and hides the other, with no repaint in the frame it enters the green */
+#cmeter.cmscene .cmh .hsvg[data-z]{will-change:opacity}
+#cmeter.cmscene .cmh[data-pose=red] .hsvg[data-z=green],#cmeter.cmscene .cmh[data-pose=green] .hsvg[data-z=red],#cmeter.cmscene .cmh:not([data-pose]) .hsvg[data-z=red]{opacity:0}
+/* (the same day: the tremor too. It was taken off in the green and put back in the red, so the frame into the green
+   restyled and re-layered the hand. Now it's there all along and only paused in the green, a still hand; and it follows the
+   hand's own pose, css/meterskin.css, not the whole scene's zone, which had every element in the scene checked) */
+#cmeter.cmscene .cmh:not(.pb) .cmhk{animation:cmtrem .12s steps(2,end) infinite paused}
+/* (the same day: the pan camera's LED is exact, 97g cmLook, so it switches with the frame that crosses the green's edge;
+   its 80 ms fill fade restyled and repainted the camera for five frames from the entry) */
+:is(#cmeter,#cmgal) .cmsk-pan .cmsec:not(.cmsec2) .cmsecled{transition:none}
 
 /* ===== css/zzzzzzzzzzzzzzpopz.css */
 /* Tips on the page itself grow with the game (Litty 2026-10-18: "bambis text pop-up is so small i didnt even see it ...
@@ -11537,6 +11550,122 @@ html.phdr #app.narrow.attable #side>.pl>.nervebox .nvsegs i{height:12px;border-r
 #app:not(.narrow) .sbook>.slipcol{display:flex;flex-direction:column;gap:12px;flex:none;width:250px}
 #app:not(.narrow) .slipcol>.slip{width:auto}
 #app:not(.narrow) .slipcol>.sptip{flex:none}
+
+/* ===== css/zzzzzzzzzzzzzzzzzbaccx.css */
+/* baccarat: your sleeve card into either hand, Cross the cards (99zzk-baccx.js). Armed, the cards you can pick glow gold */
+#app.cbtgt #tin .bacrow .card.pick,#tin .bacrow.bacx .card.pick{cursor:pointer;box-shadow:0 0 0 2px #f6c453cc,0 0 14px #f6c45366,0 6px 14px #0008;animation:bxPick 1.4s ease-in-out infinite}
+#tin .bacrow.bacx .card.cxoff{opacity:.5}
+#tin .bacrow .card.cxsel{transform:translateY(-14px);box-shadow:0 0 0 3px #f6c453,0 0 22px #f6c453aa,0 10px 18px #0008;animation:none}
+@keyframes bxPick{50%{box-shadow:0 0 0 2px #f6c453,0 0 24px #f6c45399,0 6px 14px #0008}}
+@media (prefers-reduced-motion:reduce){#app.cbtgt #tin .bacrow .card.pick,#tin .bacrow.bacx .card.pick{animation:none}}
+
+/* ===== css/zzzzzzzzzzzzzzzzzvicduel.css */
+/* ===== Victor's table: the CHEAT box, the Nerve and heat, Peek and Run up (99zzj-vicduel.js) =====
+ The box looks like the tables' (meter.css #cheatPanel): danger red, each move's Nerve coin. Wide screens: the felt's
+ lower left. Phones: a strip over your cards */
+#ov.duelov .ovb{position:relative}
+.vd{position:relative}
+.vd-top{align-items:center}
+.vd-hud{display:flex;gap:8px;align-items:stretch}
+.vd-hud .box{min-width:150px;padding:5px 10px 4px;background:#0a0610cc;border:1px solid #ffffff26;font-size:13px}
+.vd-hud .box .lbl{font-size:11px}
+.vd-hud .nervebox .nvsegs i{height:12px}
+.vd-hud .seenpips{margin-top:4px}
+.vdcheat{position:absolute;left:18px;bottom:14px;z-index:3;width:200px;padding:7px 8px 9px;border-radius:16px;box-sizing:border-box;
+  background:linear-gradient(#3d0a16f2,#200409f2);border:2px solid #ff3b52;box-shadow:0 0 0 1px #000b,0 8px 22px #000a,0 0 20px #ff1f3d4d;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.vdcheat .cpt{font:400 11.5px/1 var(--fh);letter-spacing:.06em;color:#ff6b7d;text-align:center;margin:1px 0 7px;text-transform:uppercase;text-shadow:0 0 10px #ff1f3d99;white-space:nowrap}
+.vdcheat .cpb{display:flex;flex-direction:column;gap:6px}
+.vdcheat .cpbtn{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;width:100%;min-height:46px;min-width:0;margin:0;padding:5px 12px 5px 15px;border-radius:12px;box-sizing:border-box;
+  border:2px solid #ff97a3;background:linear-gradient(#ff4359,#cf1230 55%,#920a20);color:#fff;font:400 15px/1.05 var(--fh);letter-spacing:.05em;text-align:left;
+  cursor:pointer;box-shadow:inset 0 2px 0 #ffffff5c,0 3px 0 #5a0412,0 6px 12px #0007;text-shadow:0 1px 0 #0007;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:transform .06s,box-shadow .06s,filter .15s}
+.vdcheat .cpbtn:hover:not([disabled]){filter:brightness(1.1)}
+.vdcheat .cpbtn:active:not([disabled]){transform:translateY(2px);box-shadow:inset 0 2px 0 #ffffff5c,0 1px 0 #5a0412,0 3px 8px #0007}
+.vdcheat .cpbtn:focus-visible{outline:3px solid #ffd36a;outline-offset:2px}
+.vdcheat .cpbtn[disabled]{filter:saturate(.4) brightness(.62);cursor:default}
+.vdcheat .cpbtn.mnneed .cps{color:#ffe08a}
+.vdcheat .cpbtn.arm{border-color:#7dffb0;background:linear-gradient(#25c96a,#118a44 60%,#0a6131);animation:cparm 1.1s ease-in-out infinite}
+.vdcheat .cpn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vdcheat .cps{flex:none;font:700 12px/1.1 var(--fb);letter-spacing:0;color:#ffe3e7;white-space:nowrap;text-shadow:none}
+.vdcheat .cpbtn .nvb{top:-7px;left:-7px;width:20px;height:20px;font-size:12px}
+/* armed Swap with hand: your cards glow to be tapped */
+.vd-mycards.vd-arm .card{box-shadow:0 0 0 3px #4dff9a,0 0 16px #4dff9a99}
+/* Peek: his two, face up for you */
+.vd-cards{position:relative}
+.vd-cards.vd-pk .card{box-shadow:0 0 0 2px #7affe0,0 0 14px #7affe066}
+.vd-pkt{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);white-space:nowrap;font:700 11px/1 var(--fb);letter-spacing:.04em;color:#04261c;background:#7affe0;border-radius:999px;padding:3px 8px;box-shadow:0 2px 6px #0008}
+/* Run up the deck: the card that comes next, in its slot */
+.vd-nx{position:relative}
+.vd-nx .card{opacity:.92;box-shadow:0 0 0 2px #f6c453,0 0 16px #f6c45388}
+.vd-nx>i{position:absolute;left:50%;top:-10px;transform:translateX(-50%);font:700 11px/1 var(--fb);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:#1c0a10;background:#f6c453;border-radius:999px;padding:3px 8px;box-shadow:0 2px 6px #0008}
+/* Run up's fan, over the duel */
+.vdfan{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:#07040ccc;border-radius:inherit}
+.vdfanb{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 26px;border-radius:18px;background:linear-gradient(180deg,#2a1b42,#1b1229);border:1px solid #5a4380;box-shadow:0 20px 60px #000c;text-align:center;max-width:94%;box-sizing:border-box}
+.vdfanb .ccruc{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding:8px 0 4px}
+.vdfanb .ccrc .card{--w:96px}
+/* a phone: the box is a strip over your cards; the Nerve and heat sit small under the hand count */
+#app.narrow .vd-me{flex-wrap:wrap;justify-content:center;row-gap:8px}
+#app.narrow .vdcheat{position:relative;left:auto;bottom:auto;order:-1;flex:1 1 100%;width:auto;display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:14px}
+#app.narrow .vdcheat .cpt{flex:none;width:16px;margin:0;font-size:10.5px;letter-spacing:.12em;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+#app.narrow .vdcheat .cpb{flex:1;flex-direction:row;flex-wrap:wrap;gap:5px;min-width:0}
+#app.narrow .vdcheat .cpbtn{flex:1 1 0;width:auto;min-width:64px;align-items:center;gap:3px;min-height:46px;padding:4px 5px;text-align:center}
+#app.narrow .vdcheat .cpn{white-space:normal;line-height:1;letter-spacing:0;font-size:11.5px}
+#app.narrow .vdcheat .cps{font-size:10.5px}
+#app.narrow .vd-hud{flex:1 1 100%;justify-content:center}
+#app.narrow .vd-hud .box{min-width:0;flex:1 1 0;max-width:170px}
+#app.narrow .vdfanb .ccrc .card{--w:58px}
+#app.narrow .vdfanb .ccruc{gap:8px}
+@media (prefers-reduced-motion:reduce){.vdcheat .cpbtn.arm{animation:none}}
+
+/* ===== css/zzzzzzzzzzzzzzzzzzendart.css */
+/* ===== pictures for the endings (Litty 2026-10-20, 88b-endart.js) =====
+ The Black Book, 86'd, the Family's run-over and going broke get a framed strip between the headline and the stats; the last
+ favor's pop-up gets the back booth where Vinnie's face was. Vivienne's fling and friend endings show her in the scene.
+ Desktop first; on a phone (#app.narrow) the strips scale down with the box and the booth sits above the text. */
+.endart{position:relative;flex:none;border-radius:14px;overflow:hidden;line-height:0}
+.endart>svg.eascene{display:block;width:100%;height:auto}
+.endart.ea-book,.endart.ea-walk,.endart.ea-drive,.endart.ea-truck{width:min(100%,700px);align-self:center;border:2px solid #c9a14a;box-shadow:0 10px 30px #0008}
+.endart.ea-book,.endart.ea-walk{border-color:#c4122e;box-shadow:0 0 24px #c4122e44,0 10px 30px #0008}
+.endart.ea-drive{border-color:#5a4380}
+.endart.ea-truck{border-color:#e2766a;box-shadow:0 0 24px #e2766a33,0 10px 30px #0008}
+/* the 86'd pop-up is a narrow box: the strip fills it */
+#ov.caughtov .endart.ea-walk{width:100%}
+/* the last favor: the booth in place of his portrait */
+.guide.endguide{align-items:center}
+.endart.ea-favor{width:260px;border:2px solid #c71f3d;box-shadow:0 0 22px #c71f3d55}
+#app.narrow .guide.endguide .endart.ea-favor{width:min(100%,210px)}
+
+/* Vivienne at the club: her portrait in the VIP booth, the tower on the table in front of her */
+.vivclub{grid-template-columns:300px 1fr}
+.vcsign{height:330px}
+.vcspot{position:absolute;left:50%;top:40px;width:260px;height:260px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#7affc833,#7a3cff22 45%,transparent 70%);pointer-events:none}
+.vcviv{position:absolute;left:50%;bottom:44px;width:190px;height:228px;transform:translateX(-58%)}
+.vcviv svg{width:100%;height:100%;display:block}
+.vctable{position:absolute;left:0;right:0;bottom:0;height:52px;background:linear-gradient(180deg,#2a1440,#0d0618);border-top:2px solid #c9a14a;box-shadow:0 -6px 18px #0008}
+.vivclub .vctower{left:auto;right:10px;bottom:44px;transform:scale(.62);transform-origin:100% 100%}
+.vivclub .vcvip{z-index:2}
+.vivclub .vcneon{position:relative;z-index:2}
+/* Vivienne on the Monte Carlo postcard: the harbour along the bottom, her in front of it on the right */
+.vivpost{grid-template-columns:300px 1fr}
+.vivpost .vpcard{height:280px;overflow:visible;margin-bottom:14px}
+.vpcity{position:absolute;left:0;right:0;bottom:0;height:120px;overflow:hidden;border-radius:0 0 4px 4px}
+.vpcity svg{width:100%;height:100%;display:block}
+.vpviv{position:absolute;right:0;bottom:0;width:150px;height:180px;overflow:hidden}
+.vpviv svg{width:100%;height:100%;display:block}
+.vivpost .vpgreet{position:relative;z-index:2}.vivpost .vpstamp{z-index:2}
+.vivpost .vptix{z-index:3;bottom:-16px;left:10px;background:#0b2a3a;border:1px solid #ffffff55;box-shadow:0 4px 10px #0008;transform:rotate(-3deg)}
+@media (max-width:760px){.vivclub,.vivpost{grid-template-columns:1fr}}
+/* (the two boxes were 1240 wide on a desktop: a picture, two lines and a lot of empty purple) */
+#ov.vcov .ovb,#ov.vpov .ovb{max-width:940px}
+#app.narrow .vcsign{height:300px}
+#app.narrow .vivpost .vpcard{height:250px}
+
+/* ===== css/zzzzzzzzzzzzzzzzzztidy.css */
+/* the Tell Glasses / Sid read: a pill in the middle of the dealer's face-down card (31-bj.js holeTag); the back's border stays clear */
+.card.back .holeread{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;font:700 max(10px,calc(var(--w,96px) * .17))/1.2 var(--fn);font-style:normal;letter-spacing:.02em;color:#1b120c;background:#f6c453;border-radius:999px;padding:1px max(2px,calc(var(--w,96px) * .07));box-shadow:0 1px 5px #000a,0 0 0 1px #1b120c55;white-space:nowrap;max-width:calc(100% - var(--w,96px) * .14);overflow:hidden;text-overflow:clip;pointer-events:none}
+/* the house limit pop-up: why he sent for you, plain (98-house.js houseWhy) */
+.housecall p.hcwhy{font-style:normal;font-weight:600;color:#fbf7ee}
 
 </style>
 <div id="app">
@@ -15578,6 +15707,9 @@ const GLOSS=[
   ['riffle','Riffle','The shuffle where two halves of the deck fall together. A good mechanic can stack cards in it.'],
   ['four-flusher','Four-flusher','Old gambling slang for a bluffer: four cards passed off as a flush.'],
   ['shiners?','Shiner','A tiny mirror that shows a cheat the cards as they\'re dealt.'],
+  // (Litty 2026-10-20: the Stardusk's lessons, 99zzk-stardusk.js)
+  ['readers','Readers','A marked deck. Every back tells you its face.'],
+  ['late bets?','Late bet','A chip slid onto the winner after the wheel stops. Past posting.'],
   // (Litty 2026-10-14: Railbird Ruthie, 05f-nerveitems.js)
   ['railbirds?','Railbird','A regular who watches from the rail. Rarely bets, never leaves.'],
   // (Litty 2026-10-17: video poker's cheat is Work the glitch now, the real Game King bug)
@@ -17063,7 +17195,7 @@ const PK={
       const P=R.pk,top=P&&P.draw.length?P.draw[P.draw.length-1]:null;if(P&&!(top&&top.sc&&canReadScuff(top))){const i=P.draw.findIndex(c=>c.sc&&canReadScuff(c));if(i>=0){const c=P.draw.splice(i,1)[0];P.draw.push(c);render();}}
       teach('l_marks',FR_LINES.marks);}}catch(e){}},1500);}
     const pile=nx?`<div class="deckpile"><div class="pstack">${backHTML()}${backHTML()}</div><div class="flip ${el2<2600?'go':''}" style="animation-delay:-${Math.min(el2,2600)}ms"><div class="fb">${backOf(nx)}</div><div class="ff">${cardHTML(nx)}</div></div>${(pl=>`<div class="plbl${pl==dn?' plain':''}">${pl}</div>`)(p.peek?dn:marksOnly(nx)?'Your mark. Know what it is?':read?`Next up: the <b>${cardName(nx)}</b>.`:nx.sc&&freshDecks()?'Fresh deck here: your marks don\'t show.':dive&&isScuffed(nx)?'Marked. You can\'t read it.':dn)}${mk?`<div class="pmk" title="Marked cards: you can read their backs">${mk} marked</div>`:''}</div>`:'';
-    const pn=Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0);
+    const pn=Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0,typeof sdRdN=='function'?sdRdN():0);   // (sdRdN: Marked cards, 99zzk-stardusk.js)
     // The Signal: Sid, behind the dealer, calls the next 2 cards through your earpiece
     const sig=setupOn('signal')&&pn==2;const peek=pn&&p.draw.length?`<div class="peekrow ${sig?'sig':''}">${sig?`<span class="sigp">${crewArt('peeper')}</span><span class="sigl"><b>Sid</b> in your ear<small>Coming up next</small></span>`:'Next in the deck: '}${p.draw.slice(-pn).reverse().map(c=>cardHTML(c)).join('')}</div>`:'';
     $('#tin').innerHTML=`<div class="played" id="pkPlayed">${p.played.map(c=>cardHTML(c,p.playFresh?'playin':'')).join('')}</div><div class="msg" id="pkMsg">${p.msg||'&nbsp;'}</div><div class="prev">${prev||'&nbsp;'}</div>${peek}<div class="pkme${meterHere()?' cbres':''}" style="--hn:${Math.max(8,p.hand.length)}">${meterHere()?'':sleeveHTML(`<div class="slvbtns">${PK.swapBtn()}</div>`,slvHeatTag())}<div class="hand${p.slvArm?' slvarm':''}" id="pkHand">${p.hand.map(c=>cardHTML(c,(UI.pk.includes(c.id)?'sel ':'')+(c.fresh?'deal':'')+(pkWild()&&isDeuce(c)?' pkwild':''))).join('')}</div></div><div class="hud"><span class="chip">Deck <b>${p.draw.length}</b>/${S.deck.length}</span>${setupCueHTML('poker')}</div>${pile}${meterHere()?pkSlvHTML():''}`;
@@ -17191,6 +17323,12 @@ const BJ_EDGE0=.004,BJ_EDGE_TC=.005,BJ_EDGE_MAX=.03,BJ_EDGE_MIN=-.04,BJ_HOT_PAY=
 const pTot=h=>{const t=bjTotal(h).t;return t==22&&crewOn('tina')?21:t;};
 const charlieN=()=>crewOn('shortcount')?4:5;
 function bjTotal(h){let t=0,a=0;for(const c of h){if(c.enh=='chip'){t+=0;continue;}t+=cv(c.r);if(c.r==14)a++;}while(t>21&&a){t-=10;a--;}return{t,soft:a>0};}
+/* the Tell Glasses and Sid read the dealer's face-down card as High, Low or Middle (Litty 2026-10-20: the read sat in the
+ next-card spot and read as their next card). Now it's a pill on that card's back, at blackjack and 21; the hole card shown
+ (Peek, the Shiner, the Inside Man) carries no pill. css/zzzzzzzzzzzzzzzzzztidy.css */
+const holeReadOn=()=>rigOn('tellglasses')||crewOn('peeper');
+const holeRead=c=>c.r>=10?'High':c.r<=6?'Low':'Middle';
+const holeTag=(c,html)=>c&&typeof c=='object'?html.replace(/<\/div>$/,`<i class="holeread" title="Your read on the face-down card">${holeRead(c)}</i></div>`):html;
 const BJ={
   start(){R.bj={shoe:[],rc:0,p:[],d:[],phase:'bet',big:0,dbl:0,split:0,done:[],pend:[],holeSeen:0,shinerNext:0,msg:R.session?'Pick your bet.':'',hot:0};BJ.newShoe();
     dealerSay(pick(['Place your bets, folks.','Dealer stands on all seventeens. Good luck.','Welcome to the table, sweetheart.']));},
@@ -17283,14 +17421,13 @@ const BJ={
   render(){renderDealer('bj');const b=R.bj;const tc=BJ.tc(),hot=BJ.hot();const pt=bjTotal(b.p);pt.t=pTot(b.p);const showD=b.phase=='done'||b.over;   // a finished hand stays face up until the next deal
     const hole=b.d[1];const readHole=!showD&&hole&&!BJ.holeVisible()&&canReadScuff(hole);
     if(readHole&&b.readId!==hole.id){b.readId=hole.id;b.readT=performance.now();}const hel=readHole?performance.now()-b.readT:9e9;
-    const dVis=b.d.map((c,i)=>i==1&&!showD?(BJ.holeVisible()?cardHTML(c,'peek'):readHole?(scuffTell(hole),`<span class="scufwrap"><div class="flip ${hel<2600?'go':''}" style="animation-delay:-${Math.min(hel,2600)}ms"><div class="fb">${backOf(c)}</div><div class="ff">${cardHTML(c)}</div></div><i class="scuftag">${readTag(hole)}</i></span>`):backDealt(c,backOf(c),c.fresh)):cardHTML(c,c.fresh?'deal':''));
+    const dVis=b.d.map((c,i)=>i==1&&!showD?(BJ.holeVisible()?cardHTML(c,'peek'):readHole?(scuffTell(hole),`<span class="scufwrap"><div class="flip ${hel<2600?'go':''}" style="animation-delay:-${Math.min(hel,2600)}ms"><div class="fb">${backOf(c)}</div><div class="ff">${cardHTML(c)}</div></div><i class="scuftag">${readTag(hole)}</i></span>`):backDealt(c,holeReadOn()?holeTag(c,backOf(c)):backOf(c),c.fresh)):cardHTML(c,c.fresh?'deal':''));
     const dt=b.d.length?(showD?bjTotal(b.d).t:cv(b.d[0].r)):'';
     let next='';const nc=b.shoe[b.shoe.length-1];const seeN=BJ.seeNext();
     if(nc){if(seeN)next=`<div class="nexthint">Next card${cardHTML(nc)}</div>`;else if(crewOn('edgesorter'))next=`<div class="nexthint">Next card<span class="hl">${nc.r>=10?'High':nc.r<=6?'Low':'Middle'}</span></div>`;}
     if(nc&&!seeN&&marksOnly(nc))next+=`<div class="nexthint">Next card: your mark${backOf(nc)}</div>`;
     else if(nc&&!seeN&&canReadScuff(nc))next+=`<div class="nexthint">Next card (your mark)${cardHTML(nc)}</div>`;
     if(R.bjCam)next=BJ.camHTML();   // (the camera shows the next card too: one strip, not two)
-    if((rigOn('tellglasses')||crewOn('peeper'))&&hole&&!showD&&!BJ.holeVisible()&&!readHole)next+=`<div class="nexthint">Dealer's down card<span class="hl">${hole.r>=10?'High':hole.r<=6?'Low':'Middle'}</span></div>`;
     // (Litty 2026-10-13: "what is -1 of your cards mean?" The label's "· N of your cards" count is gone)
     $('#tin').innerHTML=`${dshoeHTML()}<div class="hud"><span class="chip ${hot?'hot':tc<0?'cold':''}" title="The card count. ${countMean(tc)}">Count <b>${tc>0?'+':''}${tc}</b></span>${BJ.shoeChip()}<span class="chip">Shoe <b>${b.shoe.length}</b></span>${bossOn('doris')?'<span class="chip">Doris reshuffles every deal</span>':''}</div>${next}
     <div class="bjrow"><div class="who2">DEALER ${b.d.length?`<span class="total">${showD?dt:dt+((BJ.holeVisible()||readHole)&&b.d[1]?' · '+bjTotal(b.d).t:'')}</span>`:''}</div><div class="bjcards" style="--dn:${Math.max(1,b.d.length)}">${dVis.join('')}</div><div class="feltprint">&nbsp;</div>${!showD&&marksOnly(hole)?'<div class="scuffnote">One of your marks. What is it?</div>':readHole?`<div class="scuffnote">${scuffSays(hole,'Dealer\'s face-down card')}</div>`:!showD&&hole&&isScuffed(hole)?'<div class="scuffnote dim">That card back is marked.</div>':''}</div>
@@ -18637,6 +18774,14 @@ function drawWheel(){ROFX.draw();}
    chips slide onto the winner). The odds engine counts the sleeve, Kid Gloves, Étienne and a running Slug
    (84-oddsreport.js); the store says what the two tricks do. A fresh shoe changes no odds by itself (it can when you see
    the next card coming), so the store sells it with a "What you get" line (94-worth.js).
+ - Her side (Litty 2026-10-20: "I was thinking it would use the sleeve card(s)"): Swap with hand takes a card on either
+   side. Tap one of yours (your sleeve card raises your total) or one of hers, the side you didn't bet (it drops hers):
+   your sleeve card goes in, the card it replaces goes up your sleeve. Same cost, meter and risk. The dealer waits when
+   a swap would raise your total or drop hers.
+ - Cross the cards (Pops' lesson from Bellagiorgio, 99zzk-baccx.js): one of your side's two dealt cards trades places
+   with one of hers, a dealer's switch. The Big Game: in the same moment right after the deal, before anyone checks for a
+   natural and before any third card (or squeeze). A regular sitting: on a lost hand, like the other moves there; the two
+   dealt cards trade and the hand replays its third cards from the crossed deal (97o-nvmoves.js nvBaTableau). Once a hand.
  Nothing here runs on a timer (Litty: "don't rush me"): the moment waits for a swap, a squeeze or Carry on. */
 const bv=c=>c.enh=='chip'?0:c.r==14?1:c.r>=10?0:c.r;
 const BA_WHALE=2;   // the Whale from Osaka: "The Banker pays in full" (Litty 2026-10-18: ×2, it was the Player's ×1.9)
@@ -18658,7 +18803,8 @@ const BA={
     // your side's third card waits face up in its hand while you decide (the squeeze), so nothing on the felt moves
     // right after the deal (b.fix): your cards can be picked for a sleeve swap, as at 21 (with Kid Gloves, any card)
     const f=b.phase=='fix'&&b.fix,mk=BA.mineK(),sw=f&&BA.canSwap(),gl=f&&BA.sqAny();
-    const cardAt=(c,k)=>cardHTML(c,(c.fresh?'deal ':'')+(f&&((sw&&k[0]==mk)||gl)?'pick ':'')+(f&&f.sel==c.id?'sel':''));
+    // (Litty 2026-10-20: your sleeve card goes into either hand, so every card on the felt can be picked for it)
+    const cardAt=(c,k)=>cardHTML(c,(c.fresh?'deal ':'')+(f&&(sw||gl)?'pick ':'')+(f&&f.sel==c.id?'sel':''));
     const side=(k,lbl,h)=>{const pk=b.pend&&b.pendWho==k[0];return `<div class="bacside ${b.side==k?'backed':''}"><h4>${lbl}${b.side==k?' · YOUR BET':''}</h4><div class="bjcards">${h.map(c=>cardAt(c,k)).join('')}${pk?`<div class="bacpk">${cardHTML(b.pend)}<span>Squeeze?</span></div>`:''}</div><span class="bigscore ${h.length?'':'nil'}">${h.length?btot(h):'0'}</span></div>`;};
     $('#tin').innerHTML=`${dshoeHTML()}<div class="hud"><span class="chip">Shoe <b>${b.shoe.length}</b></span>${b.side?`<span class="chip good">Your bet: <b>${cap(b.side)}</b></span>`:''}${b.sw?'<span class="chip hot">The Switch is set</span>':''}</div>${next}
       <div class="bacrow">${side('player','PLAYER',b.p)}${side('banker','BANKER',b.b)}</div>
@@ -18683,7 +18829,7 @@ const BA={
     $$('#actions [data-side]').forEach(e=>e.onclick=()=>BA.coup(e.dataset.side));const sb=$('#aShuffle');if(sb)sb.onclick=()=>BA.shuffle();},
   // the stake goes on the felt with the deal (87-bets.js payStake), so standing up mid-hand, at the squeeze or the
   // sleeve moment, doesn't take it back
-  async coup(side){if(busy||R.ba.phase!='bet')return;busy=true;const b=R.ba;b.side=side;b.p=[];b.b=[];b.phase='deal';b.msg='';b.fix=null;payStake();sfx('chips');render();
+  async coup(side){if(busy||R.ba.phase!='bet')return;busy=true;const b=R.ba;b.side=side;b.p=[];b.b=[];b.phase='deal';b.msg='';b.fix=null;b.crossed=0;b.cx=null;b.cxLast=null;payStake();sfx('chips');render();
     // The Slug: your side's second card is the one that makes a natural (a Tie bet doesn't use it up)
     const mk=BA.mineK(),slug=!!(mk&&chg('slug'));if(slug)useChg('slug');
     for(const who of ['p','b','p','b']){if(!R||R.ba!==b)return;let c=BA.draw();if(slug&&who==mk&&b[who].length==1)c=BA.slugCard(b[who][0],c);b[who].push(c);sfx('deal');BA.render();await sleep(240);}
@@ -18746,7 +18892,7 @@ const BA={
     // (Étienne's tie pays your bet at the Player's price, ×1.9)
     const vm=et?VEGAS.bacc.player:b.side=='banker'&&full?BA_WHALE:VEGAS.bacc[b.side];
     await scorePlay({t:'bacc',key,cards:hand.slice(),played:hand.slice(),pair,pre,vm});if(S.dead)return;R.playsDone++;if(R){b.msg+=moneyNote(t0);BA.render();}return BA.end();},
-  async end(){R.plays--;await sleep(400);R.ba.phase='bet';R.ba.side=null;R.ba.pendWho=null;BA.claim();R.bo={b:0,o:0};R.hname='';busy=false;await afterPlay();},
+  async end(){R.plays--;await sleep(400);R.ba.phase='bet';R.ba.side=null;R.ba.pendWho=null;R.ba.cx=null;BA.claim();R.bo={b:0,o:0};R.hname='';busy=false;await afterPlay();},
   trickBlocked(id){if(id=='chipswitch'&&R.ba.sw)return 'Already set';return '';},
   async trick(id){const b=R.ba;
     if(id=='skip'){if(b.shoe.length<10)BA.newShoe();const x=b.shoe.pop();toast(`The ${cardName(x)} slides into the discards.`);render();}
@@ -18759,10 +18905,32 @@ const BA={
   mineK(){const s=R&&R.ba&&R.ba.side;return s=='player'?'p':s=='banker'?'b':null;},
   // the sleeve works as at 21: tap one of your cards, then Sleeve swap (sleeveSwap, 30-poker.js: the same rule and perks)
   canSwap(){return !!(BA.mineK()&&anySleeve()&&slvCard(slvI())&&!R.straight);},
+  // her side: the hand you didn't bet (in Margot's Big Game, her claim, when it isn't yours)
+  herK(){const mk=BA.youK();return mk=='p'?'b':mk=='b'?'p':null;},
+  // your side's key, on a lost hand too (a regular sitting's moves come once the bet's been cleared: b.retro keeps it)
+  youK(){const b=R&&R.ba;if(!b)return null;const s=b.side||(b.phase=='bet'&&b.retro&&b.retro.side);return s=='player'?'p':s=='banker'?'b':null;},
   // your side's total if card c goes up your sleeve and sleeve card k comes down
-  swapTot(c,k){const h=R.ba[BA.mineK()];const s=slvCard(k);return s?(btot(h)-bv(c)+bv(s)+20)%10:btot(h);},
-  // a swap (with either sleeve card) that raises your side's total: only then does the dealer wait for you
-  swapHelps(){const h=R.ba[BA.mineK()],t=btot(h);return [0,1].some(k=>(k==0||twoSleeves())&&slvCard(k)&&h.some(c=>BA.swapTot(c,k)>t));},
+  swapTot(c,k){return BA.swapTotAt(BA.mineK(),c,k);},
+  // the same for either hand (who: 'p' or 'b')
+  swapTotAt(who,c,k){const h=R.ba[who];const s=slvCard(k);return s?(btot(h)-bv(c)+bv(s)+20)%10:btot(h);},
+  // a swap (with either sleeve card) that raises your side's total or drops hers: only then does the dealer wait for you
+  swapHelps(){const b=R.ba,mk=BA.mineK(),hk=mk=='p'?'b':'p',m=btot(b[mk]),o=btot(b[hk]);
+    return [0,1].some(k=>(k==0||twoSleeves())&&slvCard(k)&&(b[mk].some(c=>BA.swapTotAt(mk,c,k)>m)||b[hk].some(c=>BA.swapTotAt(hk,c,k)<o)));},
+  /* ---------- Cross the cards (Pops' lesson, 99zzk-baccx.js): one dealt card each way, once a hand ---------- */
+  crossOK(){const b=R&&R.ba;return !!(b&&typeof mnOn1=='function'&&mnOn1('cross')&&BA.youK()&&!R.straight&&b.p.length>=2&&b.b.length>=2&&!b.crossed);},
+  // your total minus hers if your dealt card a and her dealt card c trade places
+  crossEdge(a,c){const b=R.ba,mk=BA.youK(),hk=BA.herK();return (btot(b[mk])-bv(a)+bv(c)+20)%10-(btot(b[hk])-bv(c)+bv(a)+20)%10;},
+  crossHelps(){const b=R.ba,mk=BA.youK(),hk=BA.herK();if(!mk)return false;const e=btot(b[mk])-btot(b[hk]);return b[mk].slice(0,2).some(a=>b[hk].slice(0,2).some(c=>BA.crossEdge(a,c)>e));},
+  // the moment after the deal opens for it: known, loaded, yours or a drink away, and it would help
+  crossNow(){return BA.crossOK()&&BA.crossHelps()&&(typeof nvCanSoon!='function'||nvCanSoon('cross'));},
+  // the trade itself, through the meter (the Blink: the dealer waits for the pit boss to look away). 'clean': crossed;
+  // 'seen': Made, +1 heat (the gate's), the cards stay and the cross is spent; 'no': backed out, nothing spent
+  async cross(aId,cId){const b=R.ba,r=R,mk=BA.youK(),hk=BA.herK();if(!mk||!BA.crossOK())return 'no';
+    const i=b[mk].findIndex(c=>c.id==aId),j=b[hk].findIndex(c=>c.id==cId);if(i<0||i>1||j<0||j>1)return 'no';
+    const g=await cmGate({k:'cross',n:'Cross the cards',why:'Crossing the cards',free:!!R.courage,at:'#tin .bacrow'});
+    if(R!==r||!R.ba||R.ba!==b||S.dead)return 'gone';if(g=='no'||g=='gone')return g;b.crossed=1;b.cx=null;if(!cmGo(g))return 'seen';
+    const a=b[mk][i],c=b[hk][j];if(!a||!c||a.id!=aId||c.id!=cId)return 'seen';b[mk][i]=c;b[hk][j]=a;b.cxLast=[a.id,c.id,mk];R.crosses=(R.crosses||0)+1;sfx('flip');
+    dealerSay(pick(['Cards look right to me.','Turning them over.','Nobody saw a thing.']));return 'clean';},
   // Kid Gloves: squeeze any of the first four cards (a Squeeze each)
   gloves(){return !!(rigOn('kidgloves')&&BA.mineK()&&(R.disc>0||nvCanSoon('squeeze')));},
   // (Litty 2026-10-16: the Big Game never settles past a cheat you could make) a two-card loss, no third card to come:
@@ -18772,28 +18940,39 @@ const BA={
   sqAny(){return BA.gloves()||BA.sqLoss();},
   // already won outright: your natural beats theirs, nothing to fix
   fixWon(){const b=R.ba,mk=BA.mineK();if(!mk)return true;const m=btot(b[mk]),o=btot(b[mk=='p'?'b':'p']);return m>=8&&m>o;},
-  fixOpen(){if(nvNoPrompt()||!BA.mineK()||BA.fixWon())return false;return (BA.canSwap()&&BA.swapHelps())||BA.sqAny();},
+  fixOpen(){if(nvNoPrompt()||!BA.mineK()||BA.fixWon())return false;return BA.fixMore();},
+  // anything you could still do in the moment: a swap that helps, a squeeze, a cross that helps
+  fixMore(){return (BA.canSwap()&&BA.swapHelps())||BA.sqAny()||BA.crossNow();},
   fixMsg(){const b=R.ba,mk=BA.mineK(),ok=mk=='p'?'b':'p',nm=k=>k=='p'?'Player':'Banker';
     return `Your ${nm(mk)} has <b>${btot(b[mk])}</b>. ${nm(ok)} has ${btot(b[ok])}.`;},
   // the same Sleeve swap button as at 21 (label, seen line, Ivan); Kid Gloves add their own squeeze
-  fixActions(){const b=R.ba,f=b.fix,mk=BA.mineK();const sel=f.sel!=null?b.p.concat(b.b).find(c=>c.id==f.sel):null;const sw=!!(sel&&b[mk].includes(sel));let h='';
-    if(anySleeve()){const sh=sleeveHeat();h+=`<button class="btn cy" id="aSwap" ${busy||!sw||!BA.canSwap()?'disabled':''}>Swap with hand<span class="s">${sw?(sh?heatTag(SLEEVE_HEAT)||'Your sleeve card in':(rookie()?'Your sleeve card in':'always free')):'Tap one of your cards'}</span></button>`;}
-    if(BA.sqAny()){const theirs=!!(sel&&!sw),ht=sel?heatTag(BA.sqHeat(theirs)):'';
+  // (Litty 2026-10-20: the swap takes a card from either side: yours or hers)
+  fixActions(){const b=R.ba,f=b.fix,mk=BA.mineK();const sel=f.sel!=null?b.p.concat(b.b).find(c=>c.id==f.sel):null;const sw=!!sel,mine=!!(sel&&b[mk].includes(sel));let h='';
+    const into=mine?'Your sleeve card in':'Into their hand';
+    if(anySleeve()){const sh=sleeveHeat();h+=`<button class="btn cy" id="aSwap" ${busy||!sw||!BA.canSwap()?'disabled':''}>Swap with hand<span class="s">${sw?(sh?heatTag(SLEEVE_HEAT)||into:(rookie()?into:'always free')):'Tap a card'}</span></button>`;}
+    if(BA.sqAny()){const theirs=!!(sel&&!mine),ht=sel?heatTag(BA.sqHeat(theirs)):'';
       h+=`<button class="btn rd" id="aBaSq" ${busy||!sel||R.disc<=0?'disabled':''}>Squeeze it<span class="s">${sel?(theirs?'They get a new card':'You get a new card'):'Tap any card'}${nerveOn()?'':' · '+R.disc+' left'}${ht?' · '+ht:''}</span></button>`;}
     return h;},
   // the moment itself: the usual cheat moment (no timer, a Carry on pill; the eye watches harder the longer you wait)
   async fixWin(){const b=R.ba;b.fix={sel:null};b.phase='fix';b.msg=BA.fixMsg();busy=false;render();
     tClock(0,()=>BA.fixDone(),'The dealer turns the cards');
     await new Promise(res=>{b.fixRes=res;});cheatClockStop();if(!R||R.ba!==b||S.dead)return false;
-    b.fix=null;b.phase='deal';busy=true;render();return true;},
+    b.fix=null;b.cx=null;b.phase='deal';busy=true;render();return true;},
   // after a swap or squeeze: stay while there's more you could do, otherwise the dealer carries on
-  async fixNext(){const b=R.ba;if(!b.fix)return;if(BA.fixWon()||!((BA.canSwap()&&BA.swapHelps())||BA.sqAny())){render();await sleep(450);if(R&&R.ba===b&&b.fix)BA.fixDone();return;}
+  async fixNext(){const b=R.ba;if(!b.fix)return;if(BA.fixWon()||!BA.fixMore()){render();await sleep(450);if(R&&R.ba===b&&b.fix)BA.fixDone();return;}
     b.msg=BA.fixMsg();busy=false;render();},
   fixDone(){const b=R&&R.ba;if(!b||!b.fixRes||busy)return;const r=b.fixRes;b.fixRes=null;r(true);},
-  async fixSwap(id){const b=R.ba,f=b.fix,mk=BA.mineK();if(busy||!f||!BA.canSwap())return;id=id!=null?id:f.sel;const h=b[mk];if(id==null||!h.some(c=>c.id==id))return;
-    busy=true;f.sel=null;renderActions();const ok=await sleeveSwap(h,id);if(!R||R.ba!==b||S.dead)return;busy=false;
-    if(ok)b.msg=`Swapped. Your ${cap(b.side)} has <b>${btot(h)}</b>.`;
+  // (either hand: yours, your sleeve card raises it; hers, it drops hers. The card it replaces goes up your sleeve)
+  async fixSwap(id){const b=R.ba,f=b.fix,mk=BA.mineK();if(busy||!f||!BA.canSwap())return;id=id!=null?id:f.sel;const who=id==null?null:b.p.some(c=>c.id==id)?'p':b.b.some(c=>c.id==id)?'b':null;if(!who)return;const h=b[who];
+    busy=true;f.sel=null;b.cx=null;renderActions();const ok=await sleeveSwap(h,id);if(!R||R.ba!==b||S.dead)return;busy=false;
+    if(ok)b.msg=who==mk?`Swapped. Your ${cap(b.side)} has <b>${btot(h)}</b>.`:`Swapped into their hand. ${who=='p'?'Player':'Banker'} has <b>${btot(h)}</b>.`;
     return BA.fixNext();},
+  // Cross the cards in the moment: then the coup carries on from the crossed deal (naturals, the third-card rule)
+  async fixCross(aId,cId){const b=R.ba,f=b.fix,mk=BA.mineK(),hk=BA.herK();if(busy||!f||!BA.crossOK())return;busy=true;f.sel=null;renderActions();let res='no';
+    try{res=await BA.cross(aId,cId);}finally{if(R&&R.ba===b)busy=false;}if(!R||R.ba!==b||S.dead||res=='gone')return;
+    const nm=k=>k=='p'?'Player':'Banker';
+    if(res=='clean')b.msg=`Crossed. Your ${nm(mk)} has <b>${btot(b[mk])}</b>. ${nm(hk)} has ${btot(b[hk])}.`;else if(res=='seen')b.msg='Made. The cards stay put.';
+    if(res=='no'){render();return;}return BA.fixNext();},
   async fixSq(id){const b=R.ba,f=b.fix,mk=BA.mineK();if(busy||!f||!BA.sqAny())return;id=id!=null?id:f.sel;const who=b.p.some(c=>c.id==id)?'p':b.b.some(c=>c.id==id)?'b':null;if(!who)return;
     const theirs=who!=mk,i=b[who].findIndex(c=>c.id==id);
     {const g=await cmGate({k:'squeeze',n:'The squeeze',why:'The squeeze',free:!BA.sqHeat(theirs),at:`#tin .card[data-id="${id}"]`});if(!R||R.ba!==b||S.dead)return;
@@ -22724,11 +22903,10 @@ const B21={
     if(canReadScuff(nc))return `<div class="b21next">Next card<br><small>you know that mark</small>${cardHTML(nc,'peek')}</div>`;
     if(marksOnly(nc))return `<div class="b21next">Next card<br><small>your mark</small>${backOf(nc)}</div>`;return '';},
   dealerHTML(){const b=R.b21,e=b.e,d=e.d,hole=d[1],vis=B21.holeVis(),open=e.revealed,read=!open&&hole&&!vis&&canReadScuff(hole);
-    const card=(c,i)=>i==1&&!open?(vis?cardHTML(c,'peek'):read?scuffReadHTML(c):backDealt(c,backOf(c),b.fresh.has(c.id))):cardHTML(c,b.fresh.has(c.id)?'deal':'');
+    const card=(c,i)=>i==1&&!open?(vis?cardHTML(c,'peek'):read?scuffReadHTML(c):backDealt(c,holeReadOn()?holeTag(c,backOf(c)):backOf(c),b.fresh.has(c.id))):cardHTML(c,b.fresh.has(c.id)?'deal':'');
     const t=d.length?(open?bjTotal(d).t:b21V(d[0])+(vis||read?' · '+bjTotal(d).t:'')):'';
-    const hint=!open&&hole&&!vis&&!read&&(rigOn('tellglasses')||crewOn('peeper'))?`<div class="b21dn">Face-down card: <b>${hole.r>=10?'High':hole.r<=6?'Low':'Middle'}</b></div>`:'';
     const tc=B21E.tc(e);
-    return `<div class="b21dlr"><div class="b21dh"><b>DEALER</b>${t!==''?`<span class="b21tot">${t}${open&&bjTotal(d).t>21?' BUST':''}</span>`:''}</div><div class="b21dc">${d.map(card).join('')||'<i class="b21slot"></i><i class="b21slot"></i>'}</div>${hint}
+    return `<div class="b21dlr"><div class="b21dh"><b>DEALER</b>${t!==''?`<span class="b21tot">${t}${open&&bjTotal(d).t>21?' BUST':''}</span>`:''}</div><div class="b21dc">${d.map(card).join('')||'<i class="b21slot"></i><i class="b21slot"></i>'}</div>
       <div class="b21hud"><span class="chip ${tc>=2?'hot':tc<=-2?'cold':''}" title="The Hi-Lo true count. ${countMean(tc)}">Count <b>${tc>0?'+':''}${tc}</b></span><span class="chip">Shoe <b>${e.shoe.length}</b></span></div></div>
       <div class="b21shoe" title="The shoe: two house decks and your deck"><i></i><i></i><i></i></div>`;},
   // a seat: who, the stack, the bet (a secret one shows ?), the hand(s) and what the last hand did
@@ -23725,7 +23903,8 @@ async function enterCasino0(){sfx('door');delete S.flags.opening;
   if(S.casino==1&&!S.flags.unlocked){busy=true;await unlockVegas();busy=false;}
   if(S.boss=='don'&&S.donTax==null){busy=true;await donTax();busy=false;}
   if(S.shift==0&&[2,4].includes(S.casino)&&S.flags.vivN&&!(S.flags.vivI&&S.flags.vivI[S.casino])){busy=true;await vivInterlude();busy=false;}
-  if(S.casino==5&&S.shift==0&&S.flags.vivN&&!S.flags.vivFavor){busy=true;await vivFavor();busy=false;}
+  // (caught at Victor's table and walked out, or the Black Book: 'cut', nothing more tonight; 99zzj-vicduel.js)
+  if(S.casino==5&&S.shift==0&&S.flags.vivN&&!S.flags.vivFavor){busy=true;const cut=await vivFavor();busy=false;if(cut=='cut')return;}
   if(S.casino==1&&S.shift==0&&!S.flags.slotGift){busy=true;await slotGift();busy=false;}
   // Vinnie One-Time collects his cash loan (06-data-events.js, 82v-vinnie.js)
   // (Litty 2026-10-18: your chips first, then your bankroll)
@@ -25708,15 +25887,16 @@ const serTieChips=(nm,me,him)=>`Same hand. Tie goes to more chips: ${me>him?`you
 setTimeout(()=>{
   if(SER_T.poker)SER_T.poker.decide=()=>{const sh=R.ser.his&&R.ser.his.show;return serRankFirst(sh&&sh.mine,sh&&sh.his);};
   if(SER_T.vpoker)SER_T.vpoker.decide=()=>{const h=R.ser.his;return serRankFirst(R.vp&&R.vp.hand,h&&h.hand);};
-  // 21 the same (Litty 2026-10-18: "same in blackjack"): blackjack, then a Charlie, then the higher total; a bust is last.
+  // 21 the same (Litty 2026-10-18: "same in blackjack"): blackjack, then the higher total; a bust is last.
+  // (Litty 2026-10-20: a Five-card Charlie still beats the dealer, not you: "Your 21 beats his 16." Totals decide)
   // Your best hand if you split. The same: the chips, then the 21 tiebreak above (a dead heat replays)
   if(SER_T.bj)SER_T.bj.decide=()=>{const s=R.ser,b=R.bj,h=s.his,me=Math.round(s.cur.me||0),him=Math.round(s.cur.him||0);
     const chips=()=>{if(me!=him)return {r:me>him?'W':'L'};if(typeof SER_T.bj.tie=='function'){const x=SER_T.bj.tie();if(x)return x;}return {r:'T'};};
     if(!b||!h||!h.p||!h.p.length)return chips();
-    const rk=(p,split,cn)=>{const t=pTot(p);return t>21?0:p.length==2&&t==21&&!split?23:p.length>=cn?22:t;};
-    const nm=v=>v==23?'blackjack':v==22?'Charlie':v==0?'bust':String(v);
+    const rk=(p,split)=>{const t=pTot(p);return t>21?0:p.length==2&&t==21&&!split?23:t;};
+    const nm=v=>v==23?'blackjack':v==0?'bust':String(v);
     const hands=(b.done&&b.done.length?b.done.map(x=>x.p):[]).concat(b.p&&b.p.length?[b.p]:[]);
-    const a=Math.max(0,...hands.map(p=>rk(p,!!b.split||hands.length>1,charlieN()))),c=rk(h.p,false,5);
+    const a=Math.max(0,...hands.map(p=>rk(p,!!b.split||hands.length>1))),c=rk(h.p,false);
     if(a!=c){const w=a>c;if(!a)return {r:'L',rk:1,why:`You busted, ${serWho()} didn't`};if(!c)return {r:'W',rk:1,why:`${serWhoC()} busted, you didn't`};
       return {r:w?'W':'L',rk:1,why:w?`Your ${nm(a)} beats ${serPos()} ${nm(c)}`:`${serPosC()} ${nm(c)} beats your ${nm(a)}`};}
     const x=chips();if(x.r=='T'||x.why)return x;return {r:x.r,rk:1,why:serTieChips(nm(a),me,him)};};
@@ -28904,7 +29084,10 @@ async function vivFavor(){const f=S.flags;f.vivFavor=1;
     <ul class="serbul"><li>You both start with <b>100 chips</b>.</li><li>Get him to <b>40 or less</b>, then push him to put the Rolex up.</li><li><b>Win that hand.</b></li></ul>
     <p style="color:var(--mut)">Vivienne: "Pinky ring? He's strong. Checks the time? He's got nothing."</p></div></div>
     <div class="row"><button class="btn go" data-v="ok">Sit down</button></div>`,'howov');closeOv();
-  const won=await vivDuel();f.viv=won?'won':'lost';
+  const won=await vivDuel();
+  // (caught at Victor's table and walked out, or the Black Book: the night stops here, 99zzj-vicduel.js)
+  if(won==='gone'){f.viv='lost';return 'cut';}
+  f.viv=won?'won':'lost';
   if(won)await vivReward();else{
     await ask(`<div class="guide viv"><div class="gp big">${vivArt()}</div><div><div class="lbl">In the elevator</div><h2>"Well. That's that."</h2>
       <p>"Victor keeps the watch, and I keep my troubles. Go play your cards, darling."</p></div></div>
@@ -28937,22 +29120,28 @@ function vivDuel(){return new Promise(done=>{
   const put=(who,n)=>{n=Math.max(0,Math.min(n,D[who]));D[who]-=n;D.pot+=n;return n;};
   const allIn=()=>D.me<=0||D.vic<=0;
   function draw0(){const sd=D.phase=='show'||D.phase=='over';
-    const vc=D.vh.map(c=>sd?cardHTML(c):(canReadScuff(c)?(scuffTell(c),scuffReadHTML(c)):backOf(c))).join('');
-    const mc=D.hole.map(c=>cardHTML(c,(D.phase=='rolex'&&D.swap&&D.sel==c.id)?'sel':'')).join('');
-    const board=[0,1,2,3,4].map(i=>D.board[i]?cardHTML(D.board[i]):'<div class="card empty"></div>').join('');
+    // (your cheats, 99zzj-vicduel.js: a Peek shows his two; the card you ran up the deck shows as next)
+    const pk=!sd&&vdPeeked(D);
+    const vc=D.vh.map(c=>sd?cardHTML(c):pk?cardHTML(c,'peek'):(canReadScuff(c)?(scuffTell(c),scuffReadHTML(c)):backOf(c))).join('');
+    const mc=D.hole.map(c=>cardHTML(c,(vdPickable(D)&&D.sel==c.id)?'sel':'')).join('');
+    const nx=!sd&&vdNext(D);
+    const board=[0,1,2,3,4].map(i=>D.board[i]?cardHTML(D.board[i]):nx&&i==D.board.length?`<div class="vd-nx">${cardHTML(nx,'peek')}<i>Next</i></div>`:'<div class="card empty"></div>').join('');
     const t=D.tell&&!sd?D.tell:null;
     const goal=D.rolex?'<b>The Rolex is on the table.</b> Win this hand.':D.vic<=40?'He\'s low. Push him to put up the watch.':'Get Victor down to 40 chips.';
     $('#ov .ovb').innerHTML=`<div class="vd">
-      <div class="vd-top"><span class="chip">Hand ${Math.max(1,D.hand)} of ${D.max}</span><span class="chip">${goal}</span></div>
+      <div class="vd-top"><span class="chip">Hand ${Math.max(1,D.hand)} of ${D.max}</span><span class="chip">${goal}</span>${vdHudHTML()}</div>
       <div class="vd-vic"><div class="vd-p ${t?'tk-'+t.k:''} ${t&&mood()?(t.real?'mood-g':'mood-r'):''}">${vicArt()}${t&&mood()?`<span class="moodtag">${t.real?'STRONG':'WEAK'}</span>`:''}</div>
-        <div class="vd-info"><div class="vd-n">Victor Kane</div><div class="vd-stack">${D.vic} chips</div><div class="vd-cards">${vc}</div><div class="vd-tell">${t?'<i>He '+t.t+'.</i>':'&nbsp;'}</div></div>
+        <div class="vd-info"><div class="vd-n">Victor Kane</div><div class="vd-stack">${D.vic} chips</div><div class="vd-cards${pk?' vd-pk':''}">${vc}${pk?'<span class="vd-pkt">You peeked</span>':''}</div><div class="vd-tell">${t?'<i>He '+t.t+'.</i>':'&nbsp;'}</div></div>
         <div class="vd-watch ${D.rolex?'on':''}">${WATCH_SVG}<span>${D.rolex?'On the table':'On his wrist'}</span></div>
         <div class="vd-viv"><div class="vd-vp">${vivArt()}</div><span>Vivienne</span></div></div>
       <div class="vd-felt"><div class="vd-board">${board}</div><div class="vd-pot">${D.pot?`Pot <b>${D.pot}</b>${D.rolex?' + the Rolex':''}`:'&nbsp;'}</div></div>
       <div class="vd-msg">${D.msg||'&nbsp;'}</div>
-      <div class="vd-me"><div class="vd-mycards">${mc}</div><div class="vd-stack me">You: ${D.me} chips</div></div>
+      <div class="vd-me">${vdBoxHTML(D)}<div class="vd-mycards${D.arm?' vd-arm':''}">${mc}</div><div class="vd-stack me">You: ${D.me} chips</div></div>
       <div class="row vd-act">${buttons()}</div></div>`;
-    const mine=$('#ov .vd-mycards');if(mine)mine.onclick=e=>{const el=e.target.closest('.card');if(!el||D.phase!='rolex'||!D.swap)return;D.sel=D.sel==+el.dataset.id?null:+el.dataset.id;sfx('card');draw0();};
+    // (a card you tap: for Vivienne's bump in the watch hand, or your Swap with hand on any hand, 99zzj-vicduel.js)
+    const mine=$('#ov .vd-mycards');if(mine)mine.onclick=e=>{const el=e.target.closest('.card');if(!el||D.acting||!vdPickable(D))return;const id=+el.dataset.id;
+      if(D.arm){D.acting=1;Promise.resolve(vdArmTap(D,id)).finally(()=>{D.acting=0;});return;}D.sel=D.sel==id?null:id;sfx('card');draw0();};
+    vdBind(D,{draw0,draw,done});
     // (one action at a time: a second tap while Victor's answer waits (his call, an all-in run-out) ran a second hand
     // alongside, and when the duel ended it drew the duel back over Vivienne's next pop-up, its Walk on dead and her
     // favor never finished; tools/tstuck.js 2026-10-18)
@@ -28965,7 +29154,7 @@ function vivDuel(){return new Promise(done=>{
     if(D.phase=='rolex')return B('next',D.street<0?'Deal the watch hand':D.street>=3?'Show your cards':'Next card','go')+(D.street>=0&&D.swap?B('swap','Swap the card you tapped','cy','Vivienne bumps the table',D.sel==null):'')+(D.street>=0&&D.street<3?B('back','Back out','rd','Lose 10 chips, keep trying'):'');
     if(D.phase=='show')return B('cont','Next hand','go');
     if(D.phase=='over')return B('end',D.won?'Take the watch':'Leave the table',D.won?'gd':'');return '';}
-  function newHand(){D.hand++;D.hole=[];D.vh=[];D.board=[];D.deck=full();D.street=0;D.pot=0;D.tell=null;D.vbluff=false;D.sel=null;
+  function newHand(){D.hand++;D.hole=[];D.vh=[];D.board=[];D.deck=full();D.street=0;D.pot=0;D.tell=null;D.vbluff=false;D.sel=null;vdFresh(D);
     for(let k=0;k<2;k++){D.hole.push(draw());D.vh.push(draw());}sfx('deal');}
   async function nextStreet(){if(D.street>=3)return showdown();D.street++;const n=D.street==1?3:1;for(let i=0;i<n;i++)D.board.push(draw());sfx('deal');
     D.vbluff=false;D.tell=tell();if(allIn()&&!D.rolex){D.msg='All in. Let them run.';draw0();await sleep(900);return nextStreet();}
@@ -28978,7 +29167,7 @@ function vivDuel(){return new Promise(done=>{
     if(rolexHand){D.rolex=false;D.stakeMine=0;if(va>vb){D.won=true;D.phase='over';D.msg+=' <b>The Rolex is yours.</b>';sfx('register');return draw0();}
       if(va<vb)D.msg+=' He straps the watch back on.';}
     return checkEnd();}
-  function checkEnd(){if(D.me<=0){D.won=false;D.phase='over';D.msg+=' You\'re out of chips.';}
+  function checkEnd(){vdEarn(D);if(D.me<=0){D.won=false;D.phase='over';D.msg+=' You\'re out of chips.';}
     else if(D.hand>=D.max){D.won=false;D.phase='over';D.msg+=' Victor yawns. "That\'s enough for one night."';}
     else if(D.phase!='show')D.phase='start';draw0();}
   function startNext(){if(D.vic<=40&&!D.rolex){D.phase='push';D.msg=D.vic<=0?'Victor is busted. All he has left is the watch.':`Victor is down to ${D.vic} chips.`;return draw0();}
@@ -28996,7 +29185,7 @@ function vivDuel(){return new Promise(done=>{
     if(a=='deal'){if(D.phase=='push'){D.offered=1;}return deal();}
     if(a=='cont'){return startNext();}
     if(a=='end'){closeOv();return done(!!D.won);}
-    if(a=='push'){D.hand++;const st=Math.min(40,D.me),had=D.vic;D.rolex=true;D.swap=true;D.hole=[];D.vh=[];D.board=[];D.deck=full();D.street=-1;D.pot=0;put('me',st);put('vic',D.vic);D.stakeMine=st;D.tell=null;
+    if(a=='push'){D.hand++;vdFresh(D);D.nvAct=2;const st=Math.min(40,D.me),had=D.vic;D.rolex=true;D.swap=true;D.hole=[];D.vh=[];D.board=[];D.deck=full();D.street=-1;D.pot=0;put('me',st);put('vic',D.vic);D.stakeMine=st;D.tell=null;
       D.msg=had>0?'"Fine. Everything I have, and the watch."':'"Fine." The Rolex hits the felt.';
       D.phase='rolex';sfx('chips');for(let k=0;k<2;k++){D.hole.push(draw());D.vh.push(draw());}D.street=0;D.tell=tell();D.msg+=' Tap a card to swap it once.';return draw0();}
     if(D.phase=='rolex'){
@@ -29005,12 +29194,12 @@ function vivDuel(){return new Promise(done=>{
         D.rolex=false;const back=Math.max(0,D.stakeMine-10);D.me+=back;D.vic+=D.pot-back;D.pot=0;D.stakeMine=0;
         D.msg='You back out for 10 chips. The watch goes back on.';D.phase='show';D.tell=null;sfx('card');return checkEnd();}
       if(a=='next'){return nextStreet();}return;}
-    if(D.phase=='owe'){if(a=='call'){put('me',D.owe);D.owe=0;sfx('chips');return nextStreet();}
+    if(D.phase=='owe'){if(a=='call'){D.nvAct=Math.max(D.nvAct|0,1);put('me',D.owe);D.owe=0;sfx('chips');return nextStreet();}
       if(a=='fold'){D.msg='You fold. Victor rakes it in.';D.vic+=D.pot;D.pot=0;D.phase='show';D.tell=null;return checkEnd();}}
     if(D.phase=='act'){
       if(a=='fold'){D.msg='You fold. Victor rakes it in.';D.vic+=D.pot;D.pot=0;D.phase='show';D.tell=null;return checkEnd();}
       if(a=='check')return vicChecked();
-      const size=a=='big'?25:10;const p=put('me',size);sfx('chips');return vicActs(p);}}
+      const size=a=='big'?25:10;D.nvAct=Math.max(D.nvAct|0,a=='big'?2:1);const p=put('me',size);sfx('chips');return vicActs(p);}}
   ov('','wide duelov');draw0();});}
 setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{vivDue});},0);
 
@@ -29467,11 +29656,12 @@ async function mobMissed(){const f=S.mobFavor;S.mobLevel=(S.mobLevel||0)+1;S.mob
   // (Litty 2026-10-18: your chips, then your bankroll: no drive while the two cover it)
   else if(famCan(famTake())){const amt=famTake(),fromBank=amt>Math.max(0,S.chips||0);famPay(amt);S.debt=0;S.mobLevel=0;S.mobFavor=null;sfx('register');
     await ask(vinPop({lbl:'The last favor',tone:'pressing',small:1,say:`We took what you owe out of your ${fromBank?'rack and your bankroll':'rack'}, plus the vig. Go back inside.`,body:`<p class="vfine">The Family takes <b>${chipFmt(amt)}</b>: what you owe plus ${Math.round(FAM_TAKE*100)}%. You're square.</p>`,btns:ok}),'howov');}
-  else{await ask(vinPop({lbl:'The last favor',tone:'pressing',small:1,say:vinLine('last'),body:'<p class="vnar">A long drive into the desert. A shovel in the trunk.</p>',btns:'<button class="btn rd" data-v="ok">...</button>'}),'howov');
-    closeOv();return runOver('Vinnie One-Time settled your account. He only had to say it one time.');}
+  else{await ask(vinPop({lbl:'The last favor',tone:'pressing',small:1,say:vinLine('last'),art:typeof endArt=='function'?endArt('favor'):'',body:'<p class="vnar">A long drive into the desert. A shovel in the trunk.</p>',btns:'<button class="btn rd" data-v="ok">...</button>'}),'howov');
+    closeOv();return runOver('Vinnie One-Time settled your account. He only had to say it one time.','drive');}
   closeOv();render();saveRun();await favorsNext();}
-async function runOver(why){S.dead=1;clearRun();R=null;busy=false;
-  const v=await ask(`<h2>Your run is over</h2><p>${why}</p>${summaryHTML()}<div class="row"><button class="btn go" data-v="new">New run</button><button class="btn" data-v="menu">Main menu</button></div>`);
+// art: a picture for how it ended (88b-endart.js endArt: 'drive' when the Family settles your account, 'truck' when you're broke)
+async function runOver(why,art){S.dead=1;clearRun();R=null;busy=false;
+  const v=await ask(`<h2>Your run is over</h2><p>${why}</p>${art&&typeof endArt=='function'?endArt(art):''}${summaryHTML()}<div class="row"><button class="btn go" data-v="new">New run</button><button class="btn" data-v="menu">Main menu</button></div>`);
   closeOv();v=='new'?charSelect():showTitle();}
 // Busted: no chips for a play, no bankroll that buys one, nothing left to sell and the Family won't lend. Before this the
 // floor just sat there with every door shut and no way to end the run; now it ends on the game-over screen
@@ -29480,7 +29670,7 @@ function busted(){if(!S||S.dead||S.practice||S.phase!='floor'||S.shift>=3||summo
   if((S.debt||0)<bigBuyIn()*4)return false;
   return !(S.crew.some(c=>!c.day)||bench().length||S.cons.length||S.gear.length||kit().length||S.dice.length>2||(S.balls||[]).some(x=>x.type!='house'));}
 async function bustCheck(){if(!busted())return false;await sleep(400);if(!busted())return false;
-  await runOver(`Out of chips, money and credit. You ride back to Fremont Street on a produce truck.`);return true;}
+  await runOver(`Out of chips, money and credit. You ride back to Fremont Street on a produce truck.`,'truck');return true;}
 // the Family's window on the floor
 // Vinnie's line at the window: what he says after you pay some down, the moment you're square, or how things stand
 async function familyPanel(){let note=null;while(S){const owe=S.debt||0,f=S.mobFavor;const broke=S.chips<buyIn();
@@ -29837,10 +30027,10 @@ const vinParts=s=>{const p=String(s).split('|');return {say:p[0],you:p[1]||'',en
 const VIN_ONCE='He doesn’t say it again.';
 const vinEnd=e=>e=='...'?'<p class="vsay vsilent"><b class="vwho vin-in">Vinnie:</b> <span class="vbub" role="img" aria-label="(says nothing)"></span></p><p class="vnar vonce">'+VIN_ONCE+'</p>':`<p class="vnar">${e}</p>`;
 // a pop-up: his face, his name (or a headline, with his name on the quote), his line, then the plain facts.
-// say2: a second line of his after an exchange (the first meeting)
+// say2: a second line of his after an exchange (the first meeting). art: a scene in place of his face (the last favor, 88b-endart.js)
 function vinPop(o){const tone=o.tone||vinTone(),x=vinParts(o.say||''),who=o.h?`<b class="vwho">${VIN_N}:</b> `:x.you?'<b class="vwho vin-in">Vinnie:</b> ':'';
   const ex=x.you?`<p class="vyou"><b class="vwho">You:</b> "${x.you}"</p>${vinEnd(x.end)}`:'';
-  return `<div class="guide vin vin-${tone}"><div class="gp${o.small?'':' big'}">${mobArt(tone)}</div><div><div class="lbl">${o.lbl||'The Family'}</div><h2>${o.h||VIN_N}</h2>${o.pre||''}${x.say?`<p class="vsay">${who}"${x.say}"</p>`:''}${ex}${o.say===VIN_INTRO&&typeof narLine=='function'?`<p class="vnar">${narLine('vinnieMeet')}</p>`:''}${o.say2?`<p class="vsay vnext">"${o.say2}"</p>`:''}${o.body||''}</div></div>
+  return `<div class="guide vin vin-${tone}${o.art?' endguide':''}">${o.art||`<div class="gp${o.small?'':' big'}">${mobArt(tone)}</div>`}<div><div class="lbl">${o.lbl||'The Family'}</div><h2>${o.h||VIN_N}</h2>${o.pre||''}${x.say?`<p class="vsay">${who}"${x.say}"</p>`:''}${ex}${o.say===VIN_INTRO&&typeof narLine=='function'?`<p class="vnar">${narLine('vinnieMeet')}</p>`:''}${o.say2?`<p class="vsay vnext">"${o.say2}"</p>`:''}${o.body||''}</div></div>
     <div class="row">${o.btns||'<button class="btn go" data-v="ok">Okay</button>'}</div>`;}
 // a toast or a banner: a small face and his name
 const vinSays=(s,tone)=>{const x=vinParts(s);return `<span class="vsays"><span class="vav">${mobArt(tone)}</span><span class="vtx"><b>Vinnie:</b> "${x.say}"${x.you?` <b>You:</b> "${x.you}" ${x.end=='...'?'<b>Vinnie:</b> <span class="vbub sm" role="img" aria-label="(says nothing)"></span> <i class="vonce">'+VIN_ONCE+'</i>':`<i>${x.end}</i>`}`:''}</span></span>`;};
@@ -31145,7 +31335,15 @@ function vivHallway(){const k=vivTone();
   if(k=='love')return {lbl:'In the hallway outside Victor\'s suite',h:'She reads the engraving twice.',p:'She fastens the watch on and kisses you. Slow. "Dinner tomorrow. And the night after that."',btns:[['up','"It\'s a date."']]};
   if(k=='fling')return {lbl:'In the hallway outside Victor\'s suite',h:'She reads the engraving twice.',p:'She fastens the watch on and kisses you. "I\'ve seen the view from your suite. <b>Show me again.</b>"',btns:[['up','Take her upstairs'],['cab','Walk her to a cab']],fade:1};
   return {lbl:'In the hallway outside Victor\'s suite',h:'She whoops loud enough to wake the floor.',p:'A hug, then a handshake, like a business deal. "Partners. Real ones, this time."',btns:[['up','Shake on it']]};}
-/* ---------- the three endings, when you beat the Don ---------- */
+/* ---------- the three endings, when you beat the Don ----------
+ (Litty 2026-10-20) the fling and friend endings show her too, cut out (vivCut, 88b-endart.js) in tonight's dress:
+ at the club's VIP table behind the champagne tower, and on the Monte Carlo postcard over the harbour */
+// the postcard's picture: Monte Carlo at sunrise, the hill, the casino's green dome, the yachts in the harbour
+const VP_CITY='<svg viewBox="0 0 260 120" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M0 62 Q40 30 86 46 Q130 18 176 40 Q220 26 260 44 V120 H0 Z" fill="#2a6a5a" opacity=".85"/>'
+  +[[8,70,20,22],[30,64,16,28],[48,72,22,20],[150,66,18,26],[170,72,24,20],[196,62,16,30],[214,70,22,22],[238,66,18,26]].map(([x,y,w,h])=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#f1e0c0"/><rect x="'+(x+3)+'" y="'+(y+5)+'" width="4" height="4" fill="#c97a3a"/><rect x="'+(x+w-7)+'" y="'+(y+5)+'" width="4" height="4" fill="#c97a3a"/>').join('')
+  +'<rect x="76" y="66" width="68" height="26" fill="#f6e8c8"/><path d="M88 66 a22 18 0 0 1 44 0 z" fill="#3a8a6a"/><rect x="72" y="52" width="10" height="40" fill="#f6e8c8"/><rect x="138" y="52" width="10" height="40" fill="#f6e8c8"/><path d="M72 52 l5 -10 l5 10 z M138 52 l5 -10 l5 10 z" fill="#3a8a6a"/>'
+  +'<rect x="0" y="92" width="260" height="28" fill="#0f5a7a"/><path d="M0 98 h260 M0 106 h260" stroke="#fff" stroke-opacity=".25" stroke-dasharray="10 14"/>'
+  +[[30,96],[70,100],[110,95]].map(([x,y])=>'<path d="M'+x+' '+y+' h22 l-4 5 h-15 z" fill="#fff"/><path d="M'+(x+10)+' '+y+' v-14 l8 12 z" fill="#fff"/>').join('')+'</svg>';
 async function vivEnding(){if(!vivWon()||SPEED<.05)return;const k=vivTone();const me=S.name.replace(/ ".*" /,' ');const first=me.split(' ')[0];
   if(k=='love'){
     await ask(`<div class="guide viv"><div class="gp big">${vivArt()}</div><div><div class="lbl">Two nights later · the Little Neon Chapel</div><h2>"Do you, ${first}…"</h2>
@@ -31157,15 +31355,166 @@ async function vivEnding(){if(!vivWon()||SPEED<.05)return;const k=vivTone();cons
       <p class="wpnote">The photo goes up on the wall of the Little Neon Chapel, right next to Elvis.</p>
       <div class="row"><button class="btn go" data-v="ok">Happily ever after</button></div></div>`,'wide wedov');closeOv();return;}
   if(k=='fling'){
-    await ask(`<div class="vivclub"><div class="vcsign"><div class="vcneon">CLUB EMERALD</div><div class="vctower">${'<i></i>'.repeat(10)}</div><div class="vcvip">VIP · TABLE 1</div></div>
+    await ask(`<div class="vivclub"><div class="vcsign"><i class="vcspot"></i><div class="vcneon">CLUB EMERALD</div><div class="vcviv">${vivCut(vivNow())}</div><i class="vctable"></i><div class="vctower">${'<i></i>'.repeat(10)}</div><div class="vcvip">VIP · TABLE 1</div></div>
       <div><div class="lbl">After the Stardusk · the rooftop club</div><h2>"Tonight we celebrate, gambler."</h2>
       <p>A VIP booth, a champagne tower, and Vivienne dancing on the table in the Rolex.</p>
       <p>The <b>Do Not Disturb</b> sign stays on your door for three days.</p></div>
       <div class="row"><button class="btn go" data-v="ok">Pop the champagne</button></div></div>`,'wide vcov');closeOv();return;}
-  await ask(`<div class="vivpost"><div class="vpcard"><div class="vpstamp">MC</div><div class="vpgreet">Greetings from<br><b>Monte Carlo</b></div><div class="vptix">✈ 2 × FIRST CLASS · LAS → NCE</div></div>
+  await ask(`<div class="vivpost"><div class="vpcard"><div class="vpcity">${VP_CITY}</div><div class="vpviv">${vivCut(vivNow())}</div><div class="vpstamp">MC</div><div class="vpgreet">Greetings from<br><b>Monte Carlo</b></div><div class="vptix">✈ 2 × FIRST CLASS · LAS → NCE</div></div>
     <div><div class="lbl">Sunrise on the Stardusk roof</div><h2>"Vegas was the warm-up."</h2>
     <p>"Monte Carlo has never seen us coming. Fifty-fifty, and you deal with the bouncers."</p></div>
     <div class="row"><button class="btn go" data-v="ok">"When do we leave?"</button></div></div>`,'wide vpov');closeOv();}
+
+// ===== 88b-endart.js
+/* ================= pictures for the endings that had none (Litty 2026-10-20) =================
+ Flat vector scenes in the style of the endings that have art (the chapel, the wedding photo, the penthouse), built
+ from the game's own faces (faceOf/personSpec, cut out with nobg) and plain SVG. Nothing external, nothing gory.
+   book   the Black Book (97-heat.js blackBook): your mugshot clipped into the book of excluded persons
+   walk   86'd (97-heat.js eightySix): two security guards walk you out past the buffet, toward the EXIT
+   favor  the last favor (82-chips.js mobMissed): a back booth, Vinnie in a dark suit, an envelope and the car keys
+   drive  run over by the Family (runOver(why,'drive')): a long dark sedan's headlights on a desert road at night
+   truck  out of money (bustCheck): dawn, the Strip going dark, you in the back of a produce truck bound for Fremont Street
+ Vivienne's fling and friend endings (88-vivlove.js) put her portrait into their scenes with vivCut(). */
+// a face SVG (viewBox 0 0 100 120) placed inside a scene at x,y, w by h; its ids made its own so two copies never clash
+const eaFace=(svg,x,y,w,h)=>(typeof svgOwn=='function'?svgOwn(svg):svg).replace(/^<svg /,`<svg x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMax meet" `);
+const eaEsc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// you, cut out, as you look tonight (97s-caught.js cgYou)
+const eaYou=()=>{const ch=(S&&S.ch)||'girl';try{return typeof cgYou=='function'?cgYou(ch):playerFace(ch);}catch(e){return playerFace(ch);}};
+// Vivienne, cut out of her portrait backdrop, in tonight's dress
+const vivCut=(d='emerald')=>faceOf('vivienne-'+d+'-cut',personSpec('vivienne','f',Object.assign({},VIV_LOOK,{oc:VIV_DRESS[d]||VIV_DRESS.emerald,nobg:1})));
+const EA_GUARDS=[personSpec('secguard-a','m',{hair:'buzz',hc:'#3a2414',out:'uniform',oc:'#1b1b24',acc:['earpiece','badge'],brow:'stern',mouth:'flat',fh:null,gl:null,nobg:1}),
+  personSpec('secguard-b','m',{hair:'bald',sk:'#8a583a',out:'uniform',oc:'#1b1b24',acc:['earpiece','badge'],brow:'stern',mouth:'flat',fh:'stache',gl:null,nobg:1})];
+function eaStars(n,seed,w,h){const R=seeded(hashStr(seed));let s='';for(let i=0;i<n;i++)s+=`<circle cx="${(R()*w).toFixed(1)}" cy="${(R()*h).toFixed(1)}" r="${(.5+R()*1.1).toFixed(2)}" fill="#fff" opacity="${(.35+R()*.6).toFixed(2)}"/>`;return s;}
+const EA={
+// the Black Book: an open binder on the desk under a lamp. Left page your mugshot, right page your entry
+book(){const raw=String(S&&S.name||'You'),nm=eaEsc(raw),nmL=raw.length+6;
+  const lines=[0,1,2,3,4].map(i=>`<rect x="342" y="${128+i*13}" width="${150-(i*23)%60}" height="3" rx="1.5" fill="#b9ae96"/>`).join('');
+  const chart=[0,1,2,3,4,5].map(i=>`<line x1="168" x2="272" y1="${50+i*20}" y2="${50+i*20}" stroke="#c9d0d8" stroke-width="1.2"/><text x="170" y="${47+i*20}" font-size="7" fill="#dfe5ea" font-family="monospace">${6-i*.5|0}'${i%2?'6':'0'}</text>`).join('');
+  return `<svg class="eascene" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your photo in the Black Book">
+  <defs><radialGradient id="eabL" cx=".5" cy="0" r=".9"><stop offset="0" stop-color="#ffd99a" stop-opacity=".38"/><stop offset="1" stop-color="#ffd99a" stop-opacity="0"/></radialGradient>
+  <linearGradient id="eabD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1810"/><stop offset="1" stop-color="#140a06"/></linearGradient></defs>
+  <rect width="640" height="220" fill="url(#eabD)"/><rect width="640" height="220" fill="url(#eabL)"/>
+  <ellipse cx="590" cy="190" rx="30" ry="11" fill="none" stroke="#5a3a22" stroke-width="3" opacity=".7"/>
+  <rect x="100" y="12" width="440" height="204" rx="10" fill="#0b0b10" stroke="#2c2c36" stroke-width="2"/>
+  <rect x="114" y="20" width="204" height="190" rx="3" fill="#efe8d6"/><rect x="322" y="20" width="204" height="190" rx="3" fill="#f3ecdb"/>
+  <rect x="314" y="20" width="12" height="190" fill="#00000022"/>
+  ${[52,115,178].map(y=>`<ellipse cx="320" cy="${y}" rx="9" ry="5" fill="none" stroke="#c8ccd6" stroke-width="3"/>`).join('')}
+  <g transform="rotate(-2 220 110)"><rect x="160" y="34" width="120" height="150" fill="#fff" stroke="#d8d0bc"/><rect x="166" y="40" width="108" height="122" fill="#8f9aa6"/>${chart}
+  ${eaFace(eaYou(),166,48,108,114)}<rect x="188" y="146" width="64" height="15" rx="2" fill="#111"/><text x="220" y="157" text-anchor="middle" font-size="9" fill="#fff" font-family="monospace" letter-spacing="1">EXCLUDED</text>
+  <path d="M206 28 v20 a6 6 0 0 0 12 0 v-16 a4 4 0 0 0 -8 0 v14" fill="none" stroke="#9aa0ac" stroke-width="2.4"/></g>
+  <text x="424" y="44" text-anchor="middle" font-size="8.5" fill="#5a4a3a" font-family="Georgia,serif" textLength="160" lengthAdjust="spacingAndGlyphs">NEVADA GAMING CONTROL BOARD</text>
+  <text x="424" y="62" text-anchor="middle" font-size="12" fill="#2a1a10" font-family="Georgia,serif" font-weight="700" textLength="168" lengthAdjust="spacingAndGlyphs">LIST OF EXCLUDED PERSONS</text>
+  <line x1="342" x2="506" y1="72" y2="72" stroke="#8a7a62"/>
+  <text x="342" y="92" font-size="10" fill="#2a1a10" font-family="monospace"${nmL>27?' textLength="164" lengthAdjust="spacingAndGlyphs"':''}>NAME: ${nm}</text>
+  <text x="342" y="110" font-size="10" fill="#2a1a10" font-family="monospace">KNOWN FOR: "beginner's luck"</text>${lines}
+  <g transform="rotate(-12 456 176)" opacity=".85"><rect x="406" y="160" width="100" height="32" rx="4" fill="none" stroke="#c4122e" stroke-width="3"/><text x="456" y="184" text-anchor="middle" font-size="20" fill="#c4122e" font-family="Impact,'Arial Black',sans-serif" letter-spacing="2">BARRED</text></g>
+  </svg>`;},
+// 86'd: the walk out. The buffet on the left, the EXIT on the right, you between two guards
+walk(){const dome=x=>`<rect x="${x-24}" y="118" width="48" height="6" rx="2" fill="#9aa3ad"/><path d="M${x-20} 118 a20 16 0 0 1 40 0 z" fill="#d7dde4"/><path d="M${x-12} 108 a14 10 0 0 1 10 -4" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><circle cx="${x}" cy="101" r="2.5" fill="#d7dde4"/>`;
+  const carpet=[...Array(14)].map((_,i)=>`<circle cx="${i*48+12}" cy="${200+(i%2)*10}" r="9" fill="none" stroke="#c8962e" stroke-width="1.6" opacity=".35"/>`).join('');
+  return `<svg class="eascene" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two security guards walk you out past the buffet">
+  <defs><linearGradient id="eawW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c0f2e"/><stop offset="1" stop-color="#2e1640"/></linearGradient>
+  <radialGradient id="eawH" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#ff9a3c" stop-opacity=".55"/><stop offset="1" stop-color="#ff9a3c" stop-opacity="0"/></radialGradient>
+  <radialGradient id="eawX" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff3030" stop-opacity=".45"/><stop offset="1" stop-color="#ff3030" stop-opacity="0"/></radialGradient></defs>
+  <rect width="640" height="220" fill="url(#eawW)"/>
+  <rect x="0" y="172" width="640" height="48" fill="#4a0f22"/>${carpet}
+  <text x="128" y="44" text-anchor="middle" font-size="32" fill="#ff5fa8" font-family="'Limelight','Rye',serif" letter-spacing="3" style="filter:drop-shadow(0 0 6px #ff3d8a)">BUFFET</text>
+  <text x="128" y="62" text-anchor="middle" font-size="11" fill="#ffd27a" font-family="sans-serif" font-weight="700" letter-spacing="3">ALL YOU CAN EAT</text>
+  <rect x="18" y="80" width="220" height="38" fill="url(#eawH)" opacity=".6"/>
+  ${[52,104,156,208].map(dome).join('')}
+  <rect x="14" y="124" width="228" height="48" fill="#5a5f6a"/><rect x="14" y="124" width="228" height="5" fill="#c8ccd6"/>
+  <path d="M14 88 L242 88 L232 112 L24 112 Z" fill="#bfe7ff" opacity=".14" stroke="#bfe7ff" stroke-opacity=".35"/>
+  <rect x="548" y="66" width="76" height="106" fill="#0a0612" stroke="#3a2a4a" stroke-width="3"/><rect x="552" y="70" width="68" height="102" fill="#ffe9b0" opacity=".16"/>
+  <circle cx="586" cy="40" r="44" fill="url(#eawX)"/><rect x="552" y="28" width="68" height="26" rx="3" fill="#2a0606" stroke="#ff4040" stroke-width="2"/>
+  <text x="578" y="47" text-anchor="middle" font-size="17" fill="#ff5050" font-family="Impact,'Arial Black',sans-serif" letter-spacing="2">EXIT</text><path d="M602 41 h10 m-4 -4 l4 4 l-4 4" stroke="#ff5050" stroke-width="2.2" fill="none"/>
+  ${eaFace(faceOf('secguard-a',EA_GUARDS[0]),240,64,130,156)}${eaFace(faceOf('secguard-b',EA_GUARDS[1]),420,64,130,156)}${eaFace(eaYou(),326,72,124,148)}
+  </svg>`;},
+// the last favor: a quiet back booth under one lamp. The envelope and the car keys are on the table
+favor(){const v=personSpec('mobvinnie','m',Object.assign({},VIN_A,VIN_MOOD.pressing,{nobg:1}));
+  const tufts=[0,1,2,3,4].map(i=>[0,1].map(j=>`<circle cx="${50+i*50}" cy="${74+j*44}" r="2.6" fill="#3a0a10"/>`).join('')).join('');
+  return `<svg class="eascene" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A back booth: Vinnie, an envelope, the car keys">
+  <defs><radialGradient id="eafL" cx=".5" cy=".12" r=".75"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".5"/><stop offset=".6" stop-color="#ffcf7a" stop-opacity=".08"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>
+  <linearGradient id="eafB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a1420"/><stop offset="1" stop-color="#3a0810"/></linearGradient></defs>
+  <rect width="300" height="260" fill="#1a080c"/>${[...Array(10)].map((_,i)=>`<rect x="${i*30}" y="0" width="12" height="260" fill="#ffffff" opacity=".025"/>`).join('')}
+  <path d="M24 196 V70 Q24 44 50 44 H250 Q276 44 276 70 V196 Z" fill="url(#eafB)" stroke="#2a050a" stroke-width="3"/>${tufts}
+  <rect width="300" height="260" fill="url(#eafL)"/>
+  <line x1="150" y1="0" x2="150" y2="18" stroke="#111" stroke-width="2"/><path d="M128 30 Q150 12 172 30 Z" fill="#1d1d24" stroke="#c9a14a" stroke-width="1.5"/><ellipse cx="150" cy="31" rx="9" ry="3" fill="#fff4cc"/>
+  ${eaFace(faceOf('vin-booth',v),55,36,190,228)}
+  <path d="M0 200 H300 V260 H0 Z" fill="#f2ece0"/><path d="M0 200 H300 V208 H0 Z" fill="#d8d0c0"/>
+  ${[0,1,2,3,4,5].map(i=>`<path d="M${i*50} 208 Q${i*50+25} 262 ${i*50+50} 208" fill="none" stroke="#d8d0c0" stroke-width="1.4"/>`).join('')}
+  <g transform="rotate(-7 128 218)"><rect x="92" y="204" width="76" height="34" rx="2" fill="#d8b878" stroke="#a8884a"/><rect x="92" y="208" width="76" height="34" rx="2" fill="#e4c88a" stroke="#a8884a"/><path d="M92 208 L130 228 L168 208" fill="none" stroke="#a8884a" stroke-width="1.5"/></g>
+  <g transform="translate(206 212)"><circle cx="8" cy="8" r="7" fill="none" stroke="#c8ccd6" stroke-width="2.5"/><rect x="14" y="6" width="22" height="5" rx="2" fill="#c8ccd6"/><rect x="28" y="10" width="3" height="5" fill="#c8ccd6"/><rect x="33" y="10" width="3" height="4" fill="#c8ccd6"/><rect x="-8" y="2" width="12" height="16" rx="4" fill="#1d1d24"/></g>
+  <g transform="translate(40 206)"><ellipse cx="14" cy="22" rx="18" ry="5" fill="#fff" stroke="#d8d0c0"/><path d="M4 6 H24 L22 20 Q14 24 6 20 Z" fill="#fff" stroke="#d8d0c0"/><path d="M24 9 q7 1 4 8 q-2 2 -5 1" fill="none" stroke="#d8d0c0" stroke-width="2"/><ellipse cx="14" cy="7" rx="10" ry="2.4" fill="#3a2010"/></g>
+  </svg>`;},
+// run over: the desert road at night. The Strip a glow way back on the horizon, a long dark sedan coming, high beams on
+drive(){const sky=eaStars(70,'desertsky',640,120);
+  const dash=[[148,2,4],[156,3,7],[168,4,11],[184,6,16]].map(([y,w,h])=>`<rect x="${410-w/2}" y="${y}" width="${w}" height="${h}" fill="#e8d27a" opacity=".8"/>`).join('');
+  const jt=(x,s)=>`<g transform="translate(${x} 150) scale(${s})" fill="#05030a"><rect x="-3" y="-40" width="6" height="40"/><path d="M0 -30 q-14 -6 -16 -24 h5 q2 12 11 18 z"/><path d="M0 -36 q12 -4 14 -20 h-5 q-1 10 -9 14 z"/><circle cx="-14" cy="-56" r="5"/><circle cx="12" cy="-58" r="5"/></g>`;
+  return `<svg class="eascene" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A dark sedan's headlights on a desert road at night">
+  <defs><linearGradient id="eadS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#04020a"/><stop offset=".7" stop-color="#160c2c"/><stop offset="1" stop-color="#3a1840"/></linearGradient>
+  <radialGradient id="eadV" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#ff5fa8" stop-opacity=".55"/><stop offset="1" stop-color="#ff5fa8" stop-opacity="0"/></radialGradient>
+  <radialGradient id="eadH" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff8dc" stop-opacity=".95"/><stop offset=".25" stop-color="#fff2b8" stop-opacity=".45"/><stop offset="1" stop-color="#fff2b8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="eadB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2b8" stop-opacity=".35"/><stop offset="1" stop-color="#fff2b8" stop-opacity="0"/></linearGradient></defs>
+  <rect width="640" height="220" fill="url(#eadS)"/>${sky}
+  <circle cx="96" cy="40" r="16" fill="#f4ecd0"/><circle cx="104" cy="35" r="15" fill="#0a0614"/>
+  <ellipse cx="560" cy="140" rx="90" ry="30" fill="url(#eadV)"/>
+  ${[[518,10,14],[532,7,22],[542,9,30],[554,6,18],[562,8,26],[574,10,12],[588,6,20]].map(([x,w,h])=>`<rect x="${x}" y="${140-h}" width="${w}" height="${h}" fill="#1a0c22"/><rect x="${x+2}" y="${142-h}" width="2" height="2" fill="#ffd27a" opacity=".8"/>`).join('')}
+  <path d="M0 140 L60 128 L130 136 L210 122 L300 134 L380 126 L470 136 L540 130 L640 138 V220 H0 Z" fill="#0d0818"/>
+  <rect x="0" y="140" width="640" height="80" fill="#140a14"/>
+  <path d="M406 140 L414 140 L600 220 L220 220 Z" fill="#1c1420"/>${dash}
+  <path d="M352 196 L268 220 L552 220 L468 196 Z" fill="url(#eadB)"/>
+  ${jt(150,1.1)}${jt(60,.8)}${jt(610,.9)}
+  <g transform="translate(560 150)"><rect x="-1.5" y="-38" width="3" height="38" fill="#3a3a44"/><rect x="-30" y="-58" width="60" height="22" rx="2" fill="#14532e" stroke="#e8f0e8" stroke-width="1.2"/><text x="0" y="-49" text-anchor="middle" font-size="6.5" fill="#e8f0e8" font-family="sans-serif" font-weight="700">NO SERVICES</text><text x="0" y="-40" text-anchor="middle" font-size="6.5" fill="#e8f0e8" font-family="sans-serif" font-weight="700">NEXT 90 MI</text></g>
+  <g transform="translate(410 172) scale(1.3)">
+   <path d="M-66 14 L-60 -4 Q-56 -12 -46 -13 L-36 -28 Q-32 -33 -24 -33 H24 Q32 -33 36 -28 L46 -13 Q56 -12 60 -4 L66 14 Z" fill="#0a0a10" stroke="#2a2a36" stroke-width="1.2"/>
+   <path d="M-32 -14 L-24 -29 H24 L32 -14 Z" fill="#1d2a44"/><path d="M-20 -26 L-6 -26 L-16 -16 Z" fill="#ffffff" opacity=".12"/>
+   <path d="M-14 -14 q0 -9 7 -9 q7 0 7 9 Z M4 -14 q0 -9 7 -9 q7 0 7 9 Z" fill="#05050a"/><path d="M-17 -19 h20 M1 -19 h20" stroke="#05050a" stroke-width="2.4"/>
+   <rect x="-20" y="-4" width="40" height="12" rx="2" fill="#2a2a34" stroke="#9aa0ac" stroke-width="1"/>${[-14,-7,0,7,14].map(x=>`<line x1="${x}" y1="-3" x2="${x}" y2="7" stroke="#9aa0ac" stroke-width=".8"/>`).join('')}
+   <rect x="-66" y="10" width="132" height="5" rx="2" fill="#9aa0ac"/>
+   <circle cx="-44" cy="2" r="40" fill="url(#eadH)"/><circle cx="44" cy="2" r="40" fill="url(#eadH)"/>
+   <circle cx="-44" cy="2" r="7" fill="#fffbe8"/><circle cx="44" cy="2" r="7" fill="#fffbe8"/></g>
+  </svg>`;},
+// out of money (82-chips.js bustCheck): dawn, the Strip's neon going out behind you, and you riding the back of a produce
+// truck up to Fremont Street between the lettuce and the tomatoes. One head of lettuce has made other plans
+truck(){const sky=eaStars(22,'dawnsky',640,60);
+  // a crate: slats, then a heap of whatever's in it
+  const crate=(x,y,f,s)=>`<g transform="translate(${x} ${y})">${[0,1,2].map(i=>`<circle cx="${8+i*14}" cy="2" r="${s}" fill="${f}" stroke="#00000033"/>`).join('')}<rect x="0" y="2" width="44" height="22" fill="#b8874a" stroke="#6a4622"/><line x1="0" y1="9.5" x2="44" y2="9.5" stroke="#6a4622"/><line x1="0" y1="16.5" x2="44" y2="16.5" stroke="#6a4622"/></g>`;
+  // the Strip behind you: towers, and the signs on them going out one letter at a time
+  const tw=[[388,18,46],[410,26,70],[440,16,38],[516,34,96],[556,22,62],[582,28,78],[614,26,50]].map(([x,w,h])=>`<rect x="${x}" y="${150-h}" width="${w}" height="${h}" fill="#2a1a3a"/>${[...Array(Math.floor(h/14))].map((_,j)=>`<rect x="${x+4}" y="${150-h+6+j*14}" width="${w-8}" height="3" fill="#ffd27a" opacity="${(j*7+x)%5?.08:.45}"/>`).join('')}`).join('');
+  const lit=(t,on)=>[...t].map((c,i)=>`<tspan fill="${on.includes(i)?'#ff5fa8':'#4a2a4a'}"${on.includes(i)?' style="filter:drop-shadow(0 0 4px #ff3d8a)"':''}>${c}</tspan>`).join('');
+  const dash=[0,1,2,3,4,5,6,7].map(i=>`<rect x="${i*84+10}" y="186" width="40" height="3" fill="#e8d27a" opacity=".7"/>`).join('');
+  return `<svg class="eascene" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dawn: you ride a produce truck back to Fremont Street">
+  <defs><linearGradient id="eatS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1236"/><stop offset=".45" stop-color="#6a2e5a"/><stop offset=".8" stop-color="#e2766a"/><stop offset="1" stop-color="#ffc07a"/></linearGradient>
+  <radialGradient id="eatU" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".9"/><stop offset=".4" stop-color="#ffb070" stop-opacity=".35"/><stop offset="1" stop-color="#ffb070" stop-opacity="0"/></radialGradient></defs>
+  <rect width="640" height="220" fill="url(#eatS)"/>${sky}
+  <circle cx="486" cy="150" r="70" fill="url(#eatU)"/><circle cx="486" cy="150" r="22" fill="#ffe2a0"/>
+  ${tw}
+  <g transform="translate(470 22)"><rect x="-4" y="0" width="128" height="30" rx="4" fill="#160c1e" stroke="#4a2a4a" stroke-width="2"/>
+   <text x="60" y="23" text-anchor="middle" font-size="22" font-family="'Limelight','Rye',serif" letter-spacing="2">${lit('JACKPOT',[1,5])}</text><rect x="56" y="30" width="6" height="40" fill="#160c1e"/></g>
+  <rect x="0" y="150" width="640" height="70" fill="#2a2430"/><rect x="0" y="150" width="640" height="4" fill="#4a4050"/>${dash}
+  <g transform="translate(46 150)"><rect x="-2" y="-62" width="4" height="62" fill="#5a5a64"/><rect x="-40" y="-92" width="84" height="34" rx="3" fill="#14532e" stroke="#e8f0e8" stroke-width="1.4"/>
+   <text x="2" y="-78" text-anchor="middle" font-size="9" fill="#e8f0e8" font-family="sans-serif" font-weight="700">DOWNTOWN</text><text x="2" y="-65" text-anchor="middle" font-size="9" fill="#e8f0e8" font-family="sans-serif" font-weight="700">&#8592; FREMONT ST</text></g>
+  <g transform="translate(0 0)">
+   <ellipse cx="270" cy="200" rx="190" ry="8" fill="#00000055"/>
+   <path d="M92 192 V140 Q92 128 104 126 L124 104 Q130 98 140 98 H176 V192 Z" fill="#e8e2d0" stroke="#5a5040" stroke-width="2"/>
+   <path d="M128 108 Q132 104 138 104 H168 V132 H108 Z" fill="#9cc4d8" stroke="#5a5040" stroke-width="1.5"/><path d="M140 108 L150 108 L132 128 L124 128 Z" fill="#fff" opacity=".3"/>
+   <rect x="94" y="160" width="8" height="8" rx="2" fill="#fff4cc"/><rect x="86" y="176" width="20" height="8" rx="2" fill="#7a7a84"/>
+   <rect x="176" y="96" width="6" height="96" fill="#4a4436"/>
+   ${eaFace(eaYou(),238,40,124,148)}
+   ${crate(186,140,'#5fae4a',8)}${crate(232,148,'#d8342a',7)}${crate(370,140,'#5fae4a',8)}${crate(400,128,'#e8a030',7)}
+   <rect x="182" y="160" width="262" height="30" fill="#2e6a3a" stroke="#1a3a20" stroke-width="2"/>
+   <text x="313" y="179" text-anchor="middle" font-size="13" fill="#f4e8c0" font-family="Georgia,serif" font-weight="700" letter-spacing="1">SAL'S PRODUCE</text>
+   <text x="313" y="188" text-anchor="middle" font-size="6" fill="#f4e8c0" font-family="sans-serif" letter-spacing="1">FRESH DAILY &#183; NO RIDERS</text>
+   <rect x="440" y="150" width="6" height="40" fill="#1a3a20"/><rect x="436" y="186" width="12" height="5" fill="#d8342a"/>
+   ${[140,390].map(x=>`<circle cx="${x}" cy="194" r="15" fill="#151218"/><circle cx="${x}" cy="194" r="6" fill="#9aa0ac"/>`).join('')}
+   <path d="M452 186 q12 -4 18 2 q10 -6 18 2 q8 -2 10 6 q-10 4 -18 0 q-8 6 -16 0 q-8 2 -12 -10 z" fill="#c8c0d0" opacity=".45"/>
+   <g transform="translate(528 196) rotate(28)"><circle r="9" fill="#5fae4a" stroke="#00000033"/><path d="M-6 -2 q6 -6 12 0 M-5 3 q5 -4 10 0" stroke="#3a8a2a" stroke-width="1.4" fill="none"/></g>
+   ${[[490,188],[504,194],[516,190]].map(([x,y])=>`<line x1="${x}" y1="${y}" x2="${x-8}" y2="${y}" stroke="#fff" stroke-width="1.2" opacity=".5"/>`).join('')}
+  </g>
+  </svg>`;}};
+// the picture for an ending: a framed strip (book, walk, drive, truck) or a card for the side of a pop-up (favor)
+function endArt(k){try{const f=EA[k];if(!f)return '';return `<div class="endart ea-${k}">${f()}</div>`;}catch(e){return '';}}
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{endArt,vivCut,EA});},0);
 
 // ===== 89-crapstable.js
 /* ================= craps: 3D dice =================
@@ -33396,11 +33745,11 @@ async function backOff(){const r=R,C=casinoOf();S.heat=SEEN_AFTER;sfx('slam');
 // the same walk out, the ladder stays where it is
 async function eightySix(only){busy=true;delete S.inShift;S.strikes=(S.strikes||0)+1;sfx('siren');sfx('slam');flash('#ff000055');
   const C=casinoOf(),don=C.bosses.includes('don');if(S.out)for(const k in S.out)if(S.out[k]===S.casino)delete S.out[k];
-  await ask(`<h2>${only?'Backed off':'86\'d from '+C.n}</h2><p>${only?'That was the only table open to you. ':''}Walked out for the night. ${don?'The Don\'s people let':C.n+' lets'} you back in tomorrow.</p><p style="color:#ffb3b3">Its Big Game still waits.</p>${typeof cgNar=='function'?cgNar(only?'backedOff':'eightysixed'):''}<div class="row"><button class="btn go" data-v="ok">Come back tomorrow</button></div>`,'caughtov');
+  await ask(`<h2>${only?'Backed off':'86\'d from '+C.n}</h2><p>${only?'That was the only table open to you. ':''}Walked out for the night. ${don?'The Don\'s people let':C.n+' lets'} you back in tomorrow.</p><p style="color:#ffb3b3">Its Big Game still waits.</p>${typeof endArt=='function'?endArt('walk'):''}${typeof cgNar=='function'?cgNar(only?'backedOff':'eightysixed'):''}<div class="row"><button class="btn go" data-v="ok">Come back tomorrow</button></div>`,'caughtov');
   closeOv();R=null;busy=false;dropDayPlayers();S.heat=0;S.shift=0;S.phase='arrive';render();saveRun();}
 // 3. The Black Book: Nevada's list of excluded persons. The run is over
 async function blackBook(){busy=true;delete S.inShift;S.dead=1;clearRun();ach('black_book');sfx('siren');sfx('slam');flash('#ff000055');await sleep(300);
-  const v=await ask(`<h2>The Black Book</h2><p>Caught a third time. Your photo is in every surveillance room in Nevada.</p>${typeof cgNar=='function'?cgNar('blackBook'):''}${SPEED>=.05&&typeof cgBambiHTML=='function'?cgBambiHTML('book'):''}${summaryHTML()}<div class="row"><button class="btn go" data-v="new">New run</button><button class="btn" data-v="menu">Main menu</button></div>`,'caughtov');
+  const v=await ask(`<h2>The Black Book</h2><p>Caught a third time. Your photo is in every surveillance room in Nevada.</p>${typeof endArt=='function'?endArt('book'):''}${typeof cgNar=='function'?cgNar('blackBook'):''}${SPEED>=.05&&typeof cgBambiHTML=='function'?cgBambiHTML('book'):''}${summaryHTML()}<div class="row"><button class="btn go" data-v="new">New run</button><button class="btn" data-v="menu">Main menu</button></div>`,'caughtov');
   closeOv();busy=false;return v=='new'?charSelect():showTitle();}
 
 /* ---------- the side panel: the heat bar ----------
@@ -34400,7 +34749,12 @@ const CM_SKINS={
   cooler:{shape:'cool',multi:1,lay:'h',extraH:176, mh:280, cam:'CAM 09', gc:()=>.5, held:'deck'}};
 // Hot Hands (the gallery's streak): a hot meter's green is this much wider
 const CM_HOT=1.25;
-const cmSkinId=x=>x&&CM_SKINS[x.skin]?x.skin:CM_SKIN_OF[x&&(x.k=='cons'?x.id:x.k)]||(x&&x.t&&CM_SKIN_AT[x.t]&&CM_SKIN_AT[x.t][x.k])||'pan';
+// a cheat whose skin depends on the table (Litty 2026-10-20: Past-post at craps showed the Drop, the roulette wheel over a
+// tube. At craps it's the race: your chip slides toward the dealer's hand, "no more bets", as Pinch a chip there does;
+// roulette's stays the Drop)
+const CM_SKIN_TB={craps:{post:'race'}};
+const cmSkinId=x=>{if(x&&CM_SKINS[x.skin])return x.skin;const id=x&&(x.k=='cons'?x.id:x.k),tb=x&&(x.t||(typeof R!='undefined'&&R?R.t:''));
+  return (tb&&CM_SKIN_TB[tb]&&CM_SKIN_TB[tb][id])||CM_SKIN_OF[id]||(x&&x.t&&CM_SKIN_AT[x.t]&&CM_SKIN_AT[x.t][x.k])||'pan';};
 const cmSkin=x=>Object.assign({id:cmSkinId(x)},CM_SKINS[cmSkinId(x)]);
 const cmRM=()=>reduceMotion()||!!CM.rmForce;
 // the tuning for this cheat: green width g (1: all green), where the gap sits (gc), the cameras
@@ -34433,7 +34787,8 @@ function cmTune(x,o={}){const fx=!o.noFx&&typeof mfxNow=='function'?mfxNow():{ek
   // (a casino's own drift, T.drift: the Stardusk's small slow one)
   else if(cams=='move'){const D=T0.drift||CM_DRIFT;
     const A=Math.max(0,Math.min(D.A,(hi-lo)/2));gc=clamp(sk.one?gc-A:gc,lo+A,hi-A);drift={A,P:D.P*slow,ph:Math.random()*Math.PI*2};}
-  return {sk,g,gc,drift,cams,ms,hot,ek,sv,gv,gh:cmGoldH(g,ms/gv,1,ek)};}
+  // (tc: the casino's own cameras, whatever this meter's do: the Stardusk's sweep, two of them, 2026-10-20)
+  return {sk,g,gc,drift,cams,tc:T.cams||'fixed',ms,hot,ek,sv,gv,gh:cmGoldH(g,ms/gv,1,ek)};}
 // the zone at p for a gap at gc: green or red (Litty 2026-10-14: no yellow)
 const cmZone=(p,t,gc)=>Math.abs(p-(gc==null?t.gc:gc))<=t.g/2+1e-9?'green':'red';
 const cmIn=(p,t)=>cmZone(p,t)=='green';
@@ -34530,7 +34885,12 @@ function cmSecHTML(t){const c=cmSecSide(t);let face='';try{if(typeof S!='undefin
   if(face)return `<i class="cmsec pbw ${c}" aria-hidden="true"><i class="cmsech pbh">${face}</i></i>`;
   // (Litty 2026-10-16: the Don says two cameras: a second one hangs in the other corner on its own slow sweep, looks only;
   // the first, the one cmSecAt drives, stays first)
-  const two=cmTwoCams()?`<i class="cmsec cmsec2 ${c=='l'?'r':'l'}" aria-hidden="true"><i class="cmsecm"></i><i class="cmsech">${CM_SEC_SVG}</i></i>`:'';
+  // (Litty 2026-10-20: "there should be two cameras on the meters at the Stardusk ... same meter, just add a camera,
+  // since we say there will be two cameras": "These cameras sweep." The pan had one; at the Stardusk the second hangs
+  // in the other corner too, looks only. The needle, the green, the gold and the drift are as they were)
+  // (Litty 2026-10-20, later: "two cameras does make more sense because there will always be a sweet spot in the
+  // middle": the pan has two cameras at every casino now; Charlie's keeps his pit boss's head)
+  const two=true?`<i class="cmsec cmsec2 ${c=='l'?'r':'l'}" aria-hidden="true"><i class="cmsecm"></i><i class="cmsech">${CM_SEC_SVG}</i></i>`:'';
   return `<i class="cmsec ${c}" aria-hidden="true"><i class="cmsecm"></i><i class="cmsech">${CM_SEC_SVG}</i></i>${two}`;}
 // a table that says it has two cameras on you (the Don's Big Game, 97-heat.js donCam)
 const cmTwoCams=()=>{if(CM.two!=null)return !!CM.two;try{return typeof donCam=='function'&&!!donCam();}catch(e){return false;}};
@@ -34654,7 +35014,8 @@ function cmMount(host,x,o={}){const t=o.t||cmTune(x,o),sk=t.sk,rm=cmRM();host.in
   // (the security camera, pan, or Charlie's pit boss: it looks at your needle in the red and turns away in the green,
   // cmLook; from the needle's clock and the gap as it stands. The LED (data-eye) is exact; the head is eased, ease())
   const sec=sk.shape=='h'?cmSecAt(mon,tr,span,pad):null;let gcNow=t.gc,fNow=0,fTs=0,cam=null;
-  if(sec){const look=(p,gc)=>{const l=cmLook(sec,t,p,gc);if(mon.dataset.eye!==l.eye)mon.dataset.eye=l.eye;return l;};
+  // (the LED's own data-eye drives it, css/zzmeter2.css: the monitor's is for reading only, 2026-10-20)
+  if(sec){const leds=[...sec.head.querySelectorAll('.cmsecled')];const look=(p,gc)=>{const l=cmLook(sec,t,p,gc);if(mon.dataset.eye!==l.eye){mon.dataset.eye=l.eye;for(const e of leds)e.dataset.eye=l.eye;}return l;};
     // the head at now: its aim and turn averaged (a gaussian) over the needle's last and next CM_CAM_SIG ms, then at most
     // CM_CAM_STEP deg from the last frame
     // (the aim on a tighter CM_CAM_AIM ms; a slow frame may turn it a frame's worth more, up to 3)
@@ -35010,14 +35371,19 @@ function cmRun(x,o={}){return new Promise(res=>{const t=cmTune(x,o),{g,ms}=t,sk=
   const hl=$s('.cmh.l'),hr=$s('.cmh.r');put(hl,L.lx,L.wy);put(hr,L.rx,L.wy);
   // your hands feel the cameras (round 3, Litty): in the red the fingers tense (a curl, a tremor), in the green they
   // settle. The zone under the needle drives it (cmMount onZone); reduced motion: no tremor
-  const looks={l:handLook('l'),r:handLook('r')},bases={l:HPOSE[held&&!grip?'hold':'rest'],r:grip?CM_GRIP:HPOSE.rest},HC={};
+  const looks={l:handLook('l'),r:handLook('r')},bases={l:HPOSE[held&&!grip?'hold':'rest'],r:grip?CM_GRIP:HPOSE.rest};
   const tense=(P,k)=>{const q=Object.assign({},P);for(const f of ['e0','e1','e2','e3'])q[f]=P[f]*(1-.24*k);q.te=P.te*(1-.16*k);q.sp=P.sp*(1-.2*k);return q;};
-  // (the grip: the hand and its thumb over the card are redrawn, the card stays; it sinks as the fingers tense, --gt)
+  // (Litty 2026-10-20: "it feels like it hitches when it hits the green section". Each zone change redrew both hands: a
+  // fresh SVG parsed, laid out and painted in the very frame the needle entered the green, and again as it left. That
+  // frame's work doubled (41-52 ms against 18-22 ms for every other frame at 4x CPU, tools/tmeterhitch.js), so it and the
+  // next one came late, right at the green. Now each hand's two poses are drawn once, on the first call (the needle still
+  // waiting at its start), each on its own layer; a zone change only shows one and hides the other (opacity, no repaint:
+  // css/zzzzzzzzzzzzzmeters.css). The grip: the hand and its thumb over the card, each both ways; the card stays and
+  // sinks as the fingers tense, --gt, set on the card alone)
+  const zsvg=(s,z)=>handSVG(looks[s],tense(bases[s],z=='red'?1:0)).replace('<svg class="hsvg"',`<svg class="hsvg" data-z="${z}"`);
   const onZone=(z,end)=>{if(M.done&&!end)return;el.dataset.zone=z;for(const [h,s] of [[hl,'l'],[hr,'r']]){const k=h.querySelector('.cmhk');if(!k||h.dataset.pose==z)continue;
-    const tk=z=='red'?1:0,svg=()=>HC[s+z]||(HC[s+z]=handSVG(looks[s],tense(bases[s],tk)));
-    if(h.classList.contains('grip')){const two=HC['g'+z]||(HC['g'+z]=[0,1].map(()=>handSVG(looks[s],tense(bases[s],tk))));
-      [...k.querySelectorAll(':scope>.hsvg,:scope>.cmthumb>.hsvg')].forEach((v,i)=>{v.outerHTML=two[i]||two[0];});h.style.setProperty('--gt',tk);}
-    else k.innerHTML=svg();h.dataset.pose=z;}};
+    if(!h.dataset.zz){h.dataset.zz=1;[...k.querySelectorAll(':scope>.hsvg,:scope>.cmthumb>.hsvg')].forEach(v=>{v.outerHTML=zsvg(s,'red')+zsvg(s,'green');});}
+    h.dataset.pose=z;if(h.classList.contains('grip')){const g=k.querySelector('.cmgrip');if(g)g.style.setProperty('--gt',z=='red'?1:0);}}};
   const go=(e,kf,t,ez)=>{if(!e)return Promise.resolve();if(rm){const k=kf[kf.length-1];for(const p in k)if(p!='offset'&&p!='easing')e.style[p]=k[p];return Promise.resolve();}const a=e.animate(kf,{duration:D(t),easing:ez||'cubic-bezier(.3,.8,.3,1)',fill:'forwards'});M.anims.push(a);return a.finished.catch(()=>{});};
   const wait=t=>M.skip?Promise.resolve():new Promise(r=>{const id=setTimeout(r,Math.max(1,t*sp));M.waits.push(()=>{clearTimeout(id);r();});});
   M.skipNow=()=>{if(M.skip)return;M.skip=true;for(const a of M.anims)try{a.finish();}catch(e){}for(const f of M.waits)f();};
@@ -35786,7 +36152,9 @@ const NV_COST={swap:2,runup:3,cap:2,slap:1,post:3,nudger:2,ballswitch:4,diceswit
   // (Litty 2026-10-18: "make the jolt cost one nerve so it doesn't break up the race and make fix the race 2 nerve": 1 is instant, no meter)
   shock:1,fix:2,kick:2,pickpost:3,pointshave:2,dump:3,skipturn:3,shave:2,skip:1,
   // (Litty 2026-10-16: two Booth cheats for the weekend, 99zo-mentor.js: Free spins at the slots, Big bump at roulette)
-  freespins:3,bigbump:4};
+  freespins:3,bigbump:4,
+  // (Litty 2026-10-20: the Stardusk's three premium lessons, 99zzk-stardusk.js: the Shiner and the Late bet 3, Marked cards 4)
+  glim:3,latebet:3,readers:4};
 const NV_COST_DEF=2;
 // the needle by tier: green and sweep multipliers (tier = cost, +1 when one short)
 // (Litty 2026-10-18: "make levels 3s 85% and level 4 and above be 70%": the time in the green. 4 and up keep the
@@ -36075,8 +36443,9 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{nerveOn,ner
  - Blackjack, Cap the bet (a win): +50% of what the hand paid. Pinch the bet (a loss): half your stake back.
  - Roulette, Past-post: a losing chip slides onto the winning number (a split, a corner or straight up: postTier) and
    is paid as a win.
- - Baccarat: tap a card, then Squeeze it (a fresh card) or Sleeve swap (your sleeve card). If your bet now wins, it's
-   paid; a Player or Banker bet that now ties gets the stake back.
+ - Baccarat: tap a card, then Squeeze it (a fresh card) or Sleeve swap (your sleeve card, into either hand: Litty
+   2026-10-20), or Cross the cards (one dealt card each way, 99zzk-baccx.js). If your bet now wins, it's paid; a Player
+   or Banker bet that now ties gets the stake back.
  One move a hand. Made (seen): +1 heat and it doesn't happen. Regular sittings (the Big Game series keeps its own
  rules). */
 const nvRetroOK=()=>!!(nerveOn()&&R&&R.session&&!R.ser&&!R.isBoss&&!R.straight);
@@ -36150,17 +36519,25 @@ async function nvPostRetro(){const r=R&&R.ro,x=r&&r.retro;if(busy||!x||x.used||r
  const a0=BA.actions;BA.actions=function(){const h=a0.apply(this,arguments),b=R.ba,x=b.retro;if(b.phase!='bet'||!x||x.used||!nvRetroOK())return h;
    const mk=x.side=='player'?'p':x.side=='banker'?'b':null,sel=x.sel!=null,mine=sel&&mk&&b[mk].some(c=>c.id==x.sel);
    let m=`<button class="btn rd" id="aBaSq" ${busy||!sel?'disabled':''}>Squeeze it<span class="s">${sel?'A fresh card':'Tap a card'}</span></button>`;
-   if(anySleeve()&&mk)m+=`<button class="btn cy" id="aSwap" ${busy||!mine||!slvCard(slvI())?'disabled':''}>Swap with hand<span class="s">${mine?'Your sleeve card in':'Tap one of your cards'}</span></button>`;
+   // (Litty 2026-10-20: your sleeve card goes into either hand: yours, or hers to drop her total)
+   if(anySleeve()&&mk)m+=`<button class="btn cy" id="aSwap" ${busy||!sel||!slvCard(slvI())?'disabled':''}>Swap with hand<span class="s">${sel?(mine?'Your sleeve card in':'Into their hand'):'Tap a card'}</span></button>`;
    return m+h;};
  const bd0=BA.bind;BA.bind=function(){const v=bd0.apply(this,arguments);const b=R.ba;if(b.phase=='bet'&&b.retro){const q=$('#aBaSq'),w=$('#aSwap');if(q)q.onclick=()=>nvBaRetro('squeeze');if(w)w.onclick=()=>nvBaRetro('swap');}return v;};}
 async function nvBaRetro(how){const b=R&&R.ba,x=b&&b.retro;if(busy||!x||x.used||x.sel==null||b.phase!='bet'||!nvRetroOK())return;const R0=R,id=x.sel;
   const who=b.p.some(c=>c.id==id)?'p':b.b.some(c=>c.id==id)?'b':null;if(!who)return;const mk=x.side=='player'?'p':x.side=='banker'?'b':null;
-  if(how=='swap'){if(who!==mk||!slvCard(slvI()))return;busy=true;let ok=false;try{ok=await sleeveSwap(b[who],id);}finally{busy=false;}if(R!==R0||!R.ba||R.ba!==b||S.dead)return;
+  if(how=='swap'){if(!mk||!slvCard(slvI()))return;busy=true;let ok=false;try{ok=await sleeveSwap(b[who],id);}finally{busy=false;}if(R!==R0||!R.ba||R.ba!==b||S.dead)return;
     if(!ok){render();return;}}
   else{const g=await cmGate({k:'squeeze',n:'The squeeze',why:'The squeeze',free:!BA.sqHeat(who!==mk),at:`#tin .card[data-id="${id}"]`});if(R!==R0||!R.ba||R.ba!==b||S.dead)return;if(g=='no')return;
     if(!cmGo(g)){x.used=1;x.sel=null;b.msg='Made. The card stands.';render();return;}
     const i=b[who].findIndex(c=>c.id==id);if(i<0)return;try{handSqueeze($(`#tin .bacrow .card[data-id="${id}"]`));}catch(e){}sfx('flip');b[who][i]=BA.draw();b[who][i].fresh=1;}
   x.used=1;x.sel=null;busy=true;try{nvBaTableau(b);BA.render();await nvBaSettle(b,x);}finally{busy=false;}if(R===R0&&S.phase=='play'){render();renderSide();saveRun();}}
+// Cross the cards on the lost hand (99zzk-baccx.js): one of your dealt cards and one of hers trade places, then the hand
+// replays its third cards from the crossed deal (nvBaTableau) and settles again. One move a hand, as the rest
+async function nvBaCross(aId,cId){const b=R&&R.ba,x=b&&b.retro;if(busy||!x||x.used||b.phase!='bet'||!nvRetroOK()||!BA.crossOK())return;const R0=R;
+  busy=true;let res='no';try{res=await BA.cross(aId,cId);}finally{busy=false;}if(R!==R0||!R.ba||R.ba!==b||S.dead||res=='gone')return;
+  if(res=='no'){render();return;}
+  x.used=1;x.sel=null;b.cx=null;if(res=='seen'){b.msg='Made. The cards stay put.';render();return;}
+  busy=true;try{nvBaTableau(b);BA.render();await nvBaSettle(b,x);}finally{busy=false;}if(R===R0&&S.phase=='play'){render();renderSide();saveRun();}}
 // (Litty 2026-10-18: "Real drawing rules" stay true) the new card can change who draws: the tableau runs again on the
 // first two cards of each hand. A third card it still wants stays; one it no longer wants goes; one it now wants is dealt
 function nvBaTableau(b){const P=b.p.slice(0,2),B=b.b.slice(0,2),p3=b.p[2],b3=b.b[2];if(P.length<2||B.length<2)return;const pt=btot(P),bt=btot(B);
@@ -36179,7 +36556,7 @@ async function nvBaSettle(b,x){const pt=btot(b.p),bt=btot(b.b),w=pt>bt?'player':
   try{await scorePlay({t:'bacc',key,cards:hand.slice(),played:hand.slice(),pair,pre,vm});}finally{if(R)R.buy=b0;}
   if(R&&R.ba===b){b.msg+=moneyNote(t0);R.bo={b:0,o:0};R.hname='';BA.render();}}
 
-setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{nvCapRetro,nvPostRetro,nvBaRetro,nvBaSettle,nvRetroOK});},0);
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{nvCapRetro,nvPostRetro,nvBaRetro,nvBaCross,nvBaTableau,nvBaSettle,nvRetroOK});},0);
 
 // ===== 97p-pressure.js
 /* ================= the stress ladder (Litty, 2026-10-11: "Option C, hybrid by cost", the heartbeat, Press Your Luck) =================
@@ -36216,7 +36593,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{nvCapRetro,
  nothing moves the meter during the sweep, and
  a tap is judged by cmMount at the frame it last drew. The tremble moves only your hands. */
 // (the plan's starting costs: only when the Nerve API is missing)
-const PLAN_COST={swap:2,runup:3,cap:2,pinch:2,slap:1,post:3,nudger:2,ballswitch:4,diceswitch:4,squeeze:2,wipe:4,bump:2,smack:3,shake:1,shock:1,fix:2,kick:2,pick:3,dump:3,skip:3,shave:2};
+const PLAN_COST={swap:2,runup:3,cap:2,pinch:2,slap:1,post:3,nudger:2,ballswitch:4,diceswitch:4,squeeze:2,wipe:4,bump:2,smack:3,shake:1,shock:1,fix:2,kick:2,pick:3,dump:3,skip:3,shave:2,glim:3,latebet:3,readers:4};
 const PR_DEF=2;   // a move the plan doesn't price (the pocket tricks)
 const PR={on:null,log:[],aud:null,room:0,gag:null,cam:null,glints:[]};
 const prId=x=>!x?'':typeof nvMoveId=='function'?nvMoveId(x):x.k=='cons'?x.id:x.k;
@@ -37140,10 +37517,13 @@ const houseOffFR=()=>!!(S&&S.flags&&S.flags.fr&&S.casino==0);
 const summoned=()=>!!(S&&!houseOffFR()&&S.flags.summon&&S.flags.summon[S.casino]&&S.shift<3);
 // (Litty 2026-10-16) a Family favor running at this table: the summons waits till it's done or you stand up
 const houseWait=()=>{const f=S&&S.mobFavor;return !!(f&&!f.done&&R&&R.session&&!S.practice&&R.t==f.t);};
+// (Litty 2026-10-20: "why did boss send for me?" holding $10,066: the cash-outs count too, so the pop-up says what he counted)
+const houseWhy=()=>{const out=(S.cageOut&&S.cageOut[S.casino])||0;return `You took ${money(houseWon())} off ${typeof serPos=='function'?serPos():'his'} tables${out>0?', cash-outs included':''}.`;};
 async function houseCall(cap){const b=BOSSES[S.boss];(S.flags.summon=S.flags.summon||{})[S.casino]=1;
   if(SPEED>=.05){await sleep(700);sfx('register');
     await ask(`<div class="housecall"><div class="hcface">${faceOf('boss-'+S.boss,personSpec('boss'+S.boss,b.a.g,b.a))}</div><div>
       <div class="lbl">The house limit · ${money(cap)}</div><h2>${b.n} sends for you</h2>
+      <p class="hcwhy">${houseWhy()}</p>
       <p>"You've taken enough of my money. Big Game. Now."</p>
       <ul><li>The Big Game is <b>on the house</b>: no buy-in.</li><li>The other tables are closed to you here.</li></ul>
       <div class="row"><button class="btn go" data-v="ok">Walk to the Big Game</button></div></div></div>`,'housecallov');closeOv();}}
@@ -37170,8 +37550,8 @@ function houseMeter0(){if(!S||S.shift>=3||houseOffFR())return '';const w=houseWo
   if(w<bigBuyIn())return '';const p=Math.min(100,w/cap*100);
   // (past the limit, the summons waits on this play or the Family's favor: no "At $X" under a bigger number)
   if(w>=cap)return `<div class="hmeter hot" title="You hit the house limit: the Big Game is free."><i><b style="width:100%"></b></i><span>The boss sends for you <b>next</b></span></div>`;
-  if(typeof tip=='function')tip("houselimit",`<b>The house limit:</b> hold ${money(cap)} here and the boss sends for you.`);
-  return `<div class="hmeter ${p>=75?'hot':''}" title="Hold this much and the boss sends for you: the Big Game is free."><i><b style="width:${p}%"></b></i><span>At <b>${money(cap)}</b> the boss sends for you</span></div>`;}
+  if(typeof tip=='function')tip("houselimit",`<b>The house limit:</b> chips plus cash-outs here reach ${money(cap)}, the boss sends for you.`);
+  return `<div class="hmeter ${p>=75?'hot':''}" title="Your chips plus cash-outs here. At ${money(cap)} the boss sends for you: the Big Game is free."><i><b style="width:${p}%"></b></i><span>Winnings here <b>${money(w)}</b> of <b>${money(cap)}</b></span></div>`;}
 
 // ===== 99-deckbuild.js
 /* ================= deck builders: crew and gear that feed on the deck you build =================
@@ -38114,7 +38494,7 @@ function pkPlayOut(hand,deck,nKnown,D,hs,stack){let h=hand.slice(),pos=0;
     for(const K of pkCands(h)){const v=pkLook(K,kn,pool,hs,stack?1:0)+K.length*1e-4;if(v>bv){bv=v;best=K;}}
     if(!best)break;h=best.slice();while(h.length<hs&&pos<deck.length)h.push(deck[pos++]);if(stack&&pos<deck.length)h.push(deck[pos++]);}
   return pkClass(h);}
-const pkPeekN=()=>{const p=R.pk;return Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0);};
+const pkPeekN=()=>{const p=R.pk;return Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0,typeof sdRdN=='function'?sdRdN():0);};
 const swSleeves=()=>anySleeve()?[S.sleeve,rigOn('othersleeve')?S.sleeve2:null].filter(Boolean):[];
 SWT.poker={
   sig(){const p=R.pk,top=p.draw[p.draw.length-1];return [p.hand.map(c=>c.id+c.r+c.s+(c.enh||'')).join(','),p.draw.length,top?top.id:0,p.hs,pkPeekN(),swSleeves().map(c=>c.id+c.r+c.s).join(','),R.straight?1:0].join('|');},
@@ -38272,6 +38652,8 @@ SWT.bj={
       if(wc)opts.push(swOpt('sleeve','Swap with hand',best,'cheat',sleeveHeat(),`Swap with hand, the ${cardName(wc)}`));}
     // Peek (2026-10-17: Pops' start cheat at 21, 99zo-mentor.js): the dealer's face-down card, seen, as the Shiner's look
     if(!holeVis&&swBjPeek())opts.push(swOpt('peek','Peek',holeAvg(),'cheat',0,'Peek at the face-down card'));
+    // (the Shiner, Pops' Stardusk lesson, 99zzk-stardusk.js: the same look, every hand of the sitting)
+    if(!holeVis&&typeof sdGlimSw=='function'&&sdGlimSw())opts.push(swOpt('glim','Shiner',holeAvg(),'cheat',0,'The Shiner: every hole card, all sitting'));
     yield;
     // pocket items: the Shiner (the face-down card), the Holdout Mirror (the next card), fifty for the dealer (he busts),
     // the Skip (the next card you can see, burned)
@@ -42231,12 +42613,19 @@ const MN_MOVES={
   squeeze:{n:'The squeeze',tb:['bacc'],how:'start',st:1,pri:7,mt:'tap',when:()=>R&&(R.ser||R.isBoss)?'After the deal':'After a loss'},
   // (the Shoe Shuffler's move, 35-bacc.js BA.shuffle: owning the gear still makes it a kit move that takes no slot)
   wipe:{n:'Wipe the shoe',tb:['bacc'],how:'lesson',from:4,pri:6,nw:1,mt:'pan',when:()=>R&&R.shuffled?'Once a sitting':'Between hands'},
+  // (Litty 2026-10-20: Cross the cards, a dealt card each way, once a hand. Its code and lines: 99zzk-baccx.js)
+  cross:{n:'Cross the cards',tb:['bacc'],how:'lesson',from:4,pri:6.5,nw:1,mt:'blink',when:'After the deal'},
   pickpost:{n:'Past-post a pick',tb:['sports'],how:'lesson',from:4,pri:9,mt:'none',when:'At the warning'},
   pointshave:{n:'Shave points',tb:['sports'],how:'story',from:4,pri:6,mt:'none',when:'Pick a spread'},
   skipturn:{n:'Skip their turn',tb:['drop'],how:'start',st:1,pri:9,mt:'tap',when:'Once a game'},
   // (Litty 2026-10-16: Drop's turns always alternate; going again is this cheat. Its button: mnExtraHTML, below)
   goagain:{n:'Go again',tb:['drop'],how:'start',st:1,pri:8,mt:'tap',when:'On your turn'},
-  shave:{n:'Shave the town',tb:['siege'],how:'start',st:1,pri:7,mt:'tap',when:'Tap the town'}};
+  shave:{n:'Shave the town',tb:['siege'],how:'start',st:1,pri:7,mt:'tap',when:'Tap the town'},
+  // (Litty 2026-10-20: three premium lessons for reaching the Don's casino. sd: Pops' shop sells them at the Stardusk
+  // only, never earlier, never a Big Game's free pick before it; pr: their price, the shop's highest. 99zzk-stardusk.js)
+  glim:{n:'The Shiner',tb:['bj','bj21'],how:'lesson',from:5,late:1,sd:1,pr:30000,pri:10,nw:1,mt:'blink',when:()=>R&&R.mnGlim?'Set for the sitting':R&&(R.ser||R.isBoss)?'Not in the Big Game':'Your bet or your turn'},
+  readers:{n:'Marked cards',tb:['holdem','poker'],how:'lesson',from:5,late:1,sd:1,pr:40000,pri:10,nw:1,mt:'cooler',when:()=>R&&R.mnRd?'Set for the sitting':'During a hand'},
+  latebet:{n:'Late bet',tb:['bigsix'],how:'lesson',from:5,late:1,sd:1,pr:25000,pri:9.5,nw:1,mt:'race',when:()=>R&&(R.ser||R.isBoss)?'Not in the Big Game':'After the spin'}};
 const mnWhen=(id,t)=>{const w=MN_MOVES[id]&&MN_MOVES[id].when;return typeof w=='function'?w(t):w||'Not now';};
 const mnMt=(id,t)=>{const m=MN_MOVES[id]&&MN_MOVES[id].mt;return typeof m=='function'?m(t):m||'tap';};
 // the new moves' costs and lines (only where nobody's set them: the Nerve audit owns NV_COST)
@@ -42351,7 +42740,9 @@ const mnLocked=()=>!!(R&&R.mnLock);
 // (Litty 2026-10-18: Clock the wheel and Shave points, once taught by stories, are lessons now, sold at their casino's price)
 for(const id of ['clock','pointshave'])if(MN_MOVES[id])MN_MOVES[id].how='lesson';
 // the lesson pool: what he hasn't taught you
-const mnPool=()=>{const m=mnS();return m?Object.keys(MN_MOVES).filter(id=>!m.known.includes(id)&&MN_MOVES[id].how=='lesson'):[];};
+// (the Stardusk's three: nothing from further down the Strip, not even as a free pick)
+const MN_SD_CI=5,mnSdLock=id=>!!(MN_MOVES[id]&&MN_MOVES[id].sd)&&(!S||(S.casino|0)<MN_SD_CI);
+const mnPool=()=>{const m=mnS();return m?Object.keys(MN_MOVES).filter(id=>!m.known.includes(id)&&MN_MOVES[id].how=='lesson'&&!mnSdLock(id)):[];};
 // how much a move "belongs" to the next casino: its new tables first, then its others, then tonight's
 function mnWeigher(){const nx=new Set(mnTablesAt((S.casino|0)+1)),now=new Set(mnTablesAt(S.casino|0)),fresh=[...nx].filter(t=>!now.has(t));
   return id=>{const tb=MN_MOVES[id].tb;return tb.some(t=>fresh.includes(t))?9:tb.some(t=>nx.has(t))?4:tb.some(t=>now.has(t))?2:1;};}
@@ -42379,7 +42770,7 @@ const mnDue=()=>{const m=S&&!S.practice?mnS():null;return !!m&&m.due>0&&mnPool()
 // each by the casino it comes from (dollars, bankroll). Big Game picks are free.
 const MN_PRICE=[400,700,1000,3000,8000,20000];
 const mnCi=id=>Math.max(0,Math.min(MN_PRICE.length-1,((MN_MOVES[id]&&MN_MOVES[id].from)||1)-1));
-const mnPrice=id=>MN_PRICE[mnCi(id)];
+const mnPrice=id=>(MN_MOVES[id]&&MN_MOVES[id].pr)||MN_PRICE[mnCi(id)];
 // (Litty 2026-10-16, "Preview rows + shop": once this casino's Big Game is won, the next one's new tables show early and
 // their lessons sell now, each tagged "For Benny's")
 const mnShopList=()=>{const m=mnS();if(!m||!S||S.practice)return [];const ci=S.casino|0,pv=mnPrevTables();
@@ -42387,7 +42778,7 @@ const mnShopList=()=>{const m=mnS();if(!m||!S||S.practice)return [];const ci=S.c
   const tb=mnReach(),late=id=>!!MN_MOVES[id].late&&(MN_MOVES[id].from|0)>ci,
     live=id=>mnCi(id)<=ci&&!late(id)&&MN_MOVES[id].tb.some(t=>tb.has(t)),
     soon=id=>pv.length&&mnCi(id)<=ci+1&&(late(id)?(MN_MOVES[id].from|0)==mnPrevCi()&&MN_MOVES[id].tb.some(t=>tb.has(t)||pv.includes(t)):MN_MOVES[id].tb.some(t=>pv.includes(t)));
-  return Object.keys(MN_MOVES).filter(id=>MN_MOVES[id].how=='lesson'&&!m.known.includes(id)&&(live(id)||soon(id))).sort((a,b)=>mnCi(a)-mnCi(b)||mnForCi(a)-mnForCi(b));};
+  return Object.keys(MN_MOVES).filter(id=>MN_MOVES[id].how=='lesson'&&!m.known.includes(id)&&!mnSdLock(id)&&(live(id)||soon(id))).sort((a,b)=>mnCi(a)-mnCi(b)||mnForCi(a)-mnForCi(b));};
 // the preview: the next casino, once tonight's Big Game is won (-1: none); its new tables; its short name
 function mnPrevCi(){if(!S||S.practice||mnFree())return -1;const ci=S.casino|0;return S.flags&&S.flags.beat&&S.flags.beat[ci]&&ci+1<CASINOS.length?ci+1:-1;}
 function mnPrevTables(){const ci=mnPrevCi();if(ci<0)return [];const tb=mnReach(),out=[];
@@ -42628,8 +43019,8 @@ function mnPut(t,i,id){if(!mnFits(id,t)||!mnKnown(id))return false;const m=mnS()
 // empty table t's slot i (never the last one: a table always keeps a cheat)
 const mnCanEmpty=(t,i)=>!!mnSlots(t)[i]&&mnLoad(t).length>1;
 function mnEmpty(t,i){if(!mnCanEmpty(t,i))return false;const m=mnS(),L=mnSlots(t);L[i]='';m.load[t]=L;saveRun();return true;}
-// Bambi's pick: her first trip to the back alley, a 2nd poker cheat. (Shiner and Marked cards aren't Booth cheats yet:
-// Cold deck stands in for Marked cards)
+// Bambi's pick: her first trip to the back alley, a 2nd poker cheat. (The Shiner and Marked cards are the Stardusk's
+// lessons now, 99zzk-stardusk.js; Cold deck stands in here)
 const MN_ALLEY=['runup','cold'];
 const mnAlleyPool=()=>{const m=mnS();return m?MN_ALLEY.filter(id=>MN_MOVES[id]&&!m.known.includes(id)):[];};
 const mnAlleyDue=()=>{const m=S&&!S.practice?mnS():null;return !!m&&m.alley==1&&mnAlleyPool().length>0;};
@@ -45542,7 +45933,7 @@ const LOT_PLAN=[[0,1,1],[0,2,2],[1,1,3],[1,2,4]];
 const LOT_MAX=4;
 // Bambi's line when a step opens: [the first time ever, every run after]
 const LOT_LINES={
-  1:['"Crew at the Bar, tools from the Fixer. Pops teaches cheats."','"The Bar\'s open. So is the Fixer."'],
+  1:['"Crew at the Bar, tools from the Fixer. Pops teaches cheats."','"The Bar\'s open. So is the Fixer. Pops is in the back."'],
   2:['"Sealed packs in the Trunk. Mickey works on your deck."','"The Fixer\'s trunk is open. Mickey\'s in."'],
   3:['"The Candy Man\'s in. Big boost now, crash later."','"The Candy Man\'s in."'],
   4:['"The Cage swaps chips and cash. Money in the bank earns."','"The Cage is open."']};
@@ -45624,6 +46015,355 @@ const getCashOn=()=>!!(S&&S.phase=='shop'&&(S.chips||0)>0&&!$('#bXchg'));
 {const r0=render;render=function(){const v=r0.apply(this,arguments);try{const a=$('#actions');if(a&&getCashOn()&&!$('#bGetCash')){
     a.insertAdjacentHTML('afterbegin',`<button class="btn gd" id="bGetCash">Get Cash<span class="s">Trade chips for cash</span></button>`);$('#bGetCash').onclick=getCash;}
   else if(!getCashOn()&&$('#bGetCash'))$('#bGetCash').remove();}catch(e){console.error(e);}return v;};}
+
+// ===== 99zzj-vicduel.js
+/* ================= cheating at Victor's table (Litty 2026-10-20: "how come we cant cheat at the poker game for the
+ rolex?" ... "yes add cheats to the Victor Rolex game") =================
+ Vivienne's duel (80-vivienne.js vivDuel: heads-up Hold'em for chips, then the Rolex) gets the normal cheating, at the
+ usual Nerve costs, meters and risk. The duel is a pop-up off the floor, not a sitting (no R, no #cheatPanel), so the
+ moves live in a CHEAT box of its own inside the duel (#ov .vdcheat, the box's look), with the Nerve and heat boxes
+ beside the hand count (#ov .vd-hud) so you see what you spend and what you risk.
+ - What you can do: your Booth's Hold'em row (99zo-mentor.js mnLoad('holdem')), the moves that fit heads-up:
+   Swap with hand (2: your sleeve card for the one you tap, any hand, through the meter, a trade as at every table),
+   Peek (1: his two cards, face up for you, once a hand), Run up the deck (3: pick the next board card from the top 5,
+   once a hand; Made: it still comes, +1 heat), Cold deck (4: before the turn, the rest of the board makes you Three of a
+   Kind or better, 99zzh-cardcheats.js ccHeCold). Each on your turn (your bet, his bet to you, the watch hand's streets).
+   Not here: Chip dump (Pops' plant needs an empty chair; Victor's game is just you and him), the partner's dump (no
+   partner at the table), pocket tricks (not asked for).
+ - The price: Nerve as at Hold'em (nvQuote with the Back Room's rule: no Eye in the Sky upstairs; Victor's is a private
+   room), the meter by cost (1 instant, 2 the bar under the card, 3 and 4 the scene), Made = +1 heat (addHeat 'meter'),
+   and the heat can get you caught: pay your way out and the duel goes on; walked out (86'd) or the Black Book ends it
+   ('gone': vivFavor returns 'cut' and the walk-in stops, 50-flow.js). Nerve comes from betting, as at Hold'em: each
+   hand, a check the bottom tier, a bet or a call the middle, Bet big (and the watch hand) a whole Nerve (VD_EARN).
+ - Vivienne's bump stays the watch hand's own move, free, in the action bar, as before.
+ - Nothing else changes: the duel's rules, Victor's play and tells, the chip counts, the ending.
+ The duel's moves run with a stand-in sitting in R while they're paid and judged (VD.R: Hold'em, one for the whole
+ duel, so a once-a-sitting thing, Lady Veronica's save or the first gold's refill, is once a duel), then R goes back.
+ Test: tools/tvicduel.js */
+const VD_IDS=['swap','peek','runup','cold'];
+const VD_EARN=1;
+const VD={D:null,R:null,api:null,gone:0,fan:null};
+const VD_SUB={peek:'His two cards',runup:'Next board card',cold:'Trips or better'};
+// the moves loaded at Hold'em that fit heads-up, in the loadout's order (never none: the start set's)
+function vdMoves(){if(!S)return [];let L=[];try{L=mnLoad('holdem').filter(id=>VD_IDS.includes(id));if(!L.length)L=mnHere('holdem').filter(id=>VD_IDS.includes(id)).slice(0,1);}catch(e){console.error(e);}return L;}
+const vdOn=()=>!!(S&&!S.dead&&typeof nerveOn=='function'&&nerveOn());
+// the duel's stand-in sitting, while a move is quoted, paid and judged
+function vdR(D){if(!VD.R||VD.R.vdD!==D)VD.R={t:'holdem',vd:1,vdD:D,nvFree:{},session:0};return VD.R;}
+function vdWith(D,f){const r0=R;R=vdR(D);try{return f();}finally{R=r0;}}
+const vdQ=(D,id)=>vdWith(D,()=>nvQuote(id));
+// your turn: your bet, his bet to you, the watch hand's streets
+const vdTurn=D=>!!D&&['act','owe','rolex'].includes(D.phase)&&D.street>=0&&D.hole.length==2&&D.vh.length==2;
+const vdPickable=D=>vdTurn(D);
+const vdPeeked=D=>!!(D.mn&&D.mn.pkOk);
+function vdNext(D){if(!D.mn||D.mn.ruTop==null||D.board.length>=5)return null;const top=D.deck[D.deck.length-1];return top&&top.id===D.mn.ruTop?top:null;}
+function vdFresh(D){D.mn={};D.arm=null;D.sel=null;D.nvAct=0;}
+// each move: why it can't go now ('' when it can) and its line
+function vdState(D,id){const turn=vdTurn(D),m=D.mn||{};let why='',sub=VD_SUB[id]||'';
+  if(id=='swap'){const sc=anySleeve()?slvCard(slvI()):null;if(!sc)why='No sleeve card';else if(!turn)why=mnWhen(id,'holdem');sub=D.arm=='swap'?'Tap a card':sc?cmCard(sc):'';}
+  else if(id=='peek'){if(m.pk)why='Once a hand';else if(!turn)why=mnWhen(id,'holdem');}
+  else if(id=='runup'){if(m.ru)why='Once a hand';else if(D.board.length>=5||D.deck.length<2)why='Board is full';else if(!turn)why=mnWhen(id,'holdem');}
+  else if(id=='cold'){if(m.cold)why='Once a hand';else if(!turn||D.board.length>=4)why=mnWhen(id,'holdem');}
+  const q=vdQ(D,id);return {why,sub:why||sub,q,ok:!why&&q.ok};}
+/* ---------- the box and the Nerve and heat beside the hand count ---------- */
+function vdBoxHTML(D){if(!vdOn())return '';const L=vdMoves();if(!L.length)return '';
+  const b=L.map(id=>{const s=vdState(D,id),off=!s.ok,st=s.q.ok?'ok':'no';
+    return `<button class="cpbtn cbm vdm nv-${st}${st=='no'?' mnneed':''}${D.arm==id?' arm':''}" data-vd="${id}" data-nv="${id}"${off?' disabled':''}><i class="nvb" aria-hidden="true">${s.q.cost}</i><span class="cpn">${MN_MOVES[id].n}</span><span class="cps">${s.sub}</span></button>`;}).join('');
+  return `<div class="cheatp vdcheat" role="group" aria-label="Cheat"><div class="cpt"><span class="cptl">Cheat</span></div><div class="cpb">${b}</div></div>`;}
+// (drawn as Victor's room: a private game, no Eye in the Sky, no waitress tab)
+function vdHudHTML(){if(!vdOn())return '';let n='';const r0=R;R={t:'holdem',vd:1};try{n=nerveBoxHTML().replace('id="vNerve"','id="vdNerve"').replace(' role="button" tabindex="0"','').replace(/ wtok\b/,'').replace(/<span class="wtic"[\s\S]*?<\/span>/,'').replace(/ Tap for a drink: \+1 Nerve\./,'');}catch(e){}finally{R=r0;}
+  let h='';try{h=heatBoxHTML().replace('id="vHeatBox"','id="vdHeat"');}catch(e){}return `<div class="vd-hud">${n}${h}</div>`;}
+function vdHudPaint(){const h=document.querySelector('#ov .vd-hud');if(!h||!VD.D)return;const t=document.createElement('div');t.innerHTML=vdHudHTML();const n=t.firstElementChild;if(n)h.replaceWith(n);}
+{const p0=nvPaint;nvPaint=function(){const v=p0.apply(this,arguments);try{vdHudPaint();}catch(e){}return v;};}
+{const s0=renderSide;renderSide=function(){const v=s0.apply(this,arguments);try{vdHudPaint();}catch(e){}return v;};}
+// (from vivDuel's draw0: the box's buttons; one move at a time, sharing the duel's own one-action lock)
+function vdBind(D,api){if(VD.D!==D){VD.D=D;VD.gone=0;}VD.api=api;
+  for(const b of document.querySelectorAll('#ov .vdcheat [data-vd]'))b.onclick=()=>{if(D.acting||b.disabled||VD.gone)return;D.acting=1;
+    Promise.resolve(vdUse(D,b.dataset.vd)).catch(e=>console.error(e)).finally(()=>{D.acting=0;if(!VD.gone&&VD.D===D&&document.querySelector('#ov .vd'))api.draw0();});};}
+/* ---------- the moves ---------- */
+async function vdUse(D,id){if(!vdTurn(D)||!vdMoves().includes(id))return;
+  if(id=='swap'){if(D.sel!=null&&D.hole.some(c=>c.id==D.sel))return vdSwap(D,D.sel);
+    D.arm=D.arm=='swap'?null:'swap';sfx('card');if(D.arm&&SPEED>=.05)toast('Tap a card.',1600);return;}
+  if(id=='peek')return vdPeek(D);if(id=='runup')return vdRunUp(D);if(id=='cold')return vdCold(D);}
+// a card tapped while Swap with hand waits for one
+function vdArmTap(D,id){D.arm=null;if(!D.hole.some(c=>c.id==id))return;D.sel=id;return vdSwap(D,id);}
+async function vdSwap(D,id){const k=slvI(),sc=slvCard(k);if(!sc||!D.hole.some(c=>c.id==id))return;
+  const g=await vdMeter(D,{k:'swap',n:'Swap with hand',why:'Swap with hand',at:`#ov .vd-mycards .card[data-id="${id}"]`});if(g=='no'||g=='gone')return g;
+  const i=D.hole.findIndex(c=>c.id==id);
+  if(g!='clean'||i<0||slvCard(k)!==sc){D.msg='Made. Your card stays put.';return vdShow(D,'swap','seen',`#ov .vd-mycards .card[data-id="${id}"]`,'');}
+  const out=D.hole[i];D.hole[i]=sc;slvTrade(k,sc,out);S.stats.swaps=(S.stats.swaps||0)+1;D.sel=null;sfx('flip');
+  D.msg=pick(['A flick of the wrist. Nobody saw a thing.','Up the sleeve, down the sleeve.','Smooth as a lounge singer.']);
+  return vdShow(D,'swap','clean',`#ov .vd-mycards .card[data-id="${sc.id}"]`,'Swapped in: '+trCN(sc));}
+async function vdPeek(D){if(D.mn.pk)return;const g=await vdMeter(D,{k:'peek',n:'Peek',why:'The peek',at:'#ov .vd-cards'});if(g=='no'||g=='gone')return g;
+  D.mn.pk=1;if(g=='clean'){D.mn.pkOk=1;sfx('flip');D.msg='His cards. Play it like you knew.';}else D.msg='Made. You saw nothing.';
+  return vdShow(D,'peek',g,'#ov .vd-cards','His two cards');}
+// Run up the deck: Nerve as the fan opens, a card picked, then the meter. Made: +1 heat, and it still comes (as at Hold'em)
+async function vdRunUp(D){if(D.mn.ru||D.board.length>=5||D.deck.length<2)return;
+  let q,steady=false;const paid=vdWith(D,()=>{q=nvQuote('runup');if(!q.ok){nvNo('runup');return false;}steady=nvFull()&&q.tier>=2;nvPay(q);return true;});if(!paid)return;
+  D.mn.ru=1;vdHudPaint();
+  // (a Cold deck in: the fan is its cards, they stay put)
+  const k=ccColdTop({deck:D.deck,mnColdIds:D.mn.coldIds}),cs=(k?D.deck.slice(-Math.min(k,RU_N)):D.deck.slice(-RU_N)).reverse();
+  const cid=await vdFan(cs);const c=cs.find(x=>x.id==cid);if(!c||VD.gone)return;
+  vdR(D).ccPick=c;let g;try{g=await vdMeter(D,{k:'runup',n:'Run up the deck',why:'Run up the deck',at:'#ov .vd-board',nvPaid:1,nvQ:q,nvTier:q.tier,nvSteady:steady});}finally{vdR(D).ccPick=null;}
+  if(g=='gone')return g;if(g!='clean'&&g!='seen'){D.msg='You leave the deck alone.';return;}
+  const i=D.deck.indexOf(c);if(i>=0){D.deck.splice(i,1);D.deck.push(c);}D.mn.ruTop=c.id;sfx('flip');
+  D.msg=g=='seen'?`Made. The <b>${cardName(c)}</b> still comes next.`:`Next up: the <b>${cardName(c)}</b>.`;
+  return vdShow(D,'runup',g,'#ov .vd-nx','Next card: '+trCN(c));}
+async function vdCold(D){if(D.mn.cold||D.board.length>=4)return;const g=await vdMeter(D,{k:'cold',n:'Cold deck',why:'The cold deck',at:'#ov .vd-board'});if(g=='no'||g=='gone')return g;
+  D.mn.cold=1;if(g=='clean'){const he={me:D.hole,board:D.board,deck:D.deck,opp:[{hole:D.vh}],mnColdIds:null};const r0=R;R=Object.assign({},vdR(D),{he});
+    try{D.mn.coldK=ccHeCold();}finally{R=r0;}D.deck=he.deck;D.mn.coldIds=he.mnColdIds||[];sfx('deal');D.msg='The cold deck is in. Watch the board.';}
+  else D.msg='Made. The deck stays.';
+  return vdShow(D,'cold',g,'#ov .vd-board','Trips or better');}
+// the duel redrawn, then the gold dust from where you stopped the needle to what changed (a red fizzle on a Made)
+function vdShow(D,id,res,sel,lb){if(VD.gone||!VD.api)return;VD.api.draw0();if(!trLive())return;
+  try{const el=document.querySelector(sel),r=el&&trR(el),src=VD.src||trR(document.querySelector(`#ov .vdcheat [data-vd="${id}"]`));
+    if(r)trGo({id,x:{k:id},res:res=='seen'?'seen':'clean',src,kind:'meter',T:{el,r,why:'at'},lb});}catch(e){console.error('vd trail',e);}}
+// Run up's fan: the top 5, the next one first, over the duel. A big move: no back-out once it's open (as at Hold'em)
+function vdFan(cs){return new Promise(res=>{const host=document.querySelector('#ov .ovb');if(!host){res(null);return;}
+  const el=document.createElement('div');el.className='vdfan';el.innerHTML=`<div class="vdfanb"><div class="lbl">Run up the deck</div><h2>Pick one. It comes next.</h2><div class="ccruc">${cs.map((c,i)=>`<button type="button" class="ccrc" data-id="${c.id}" aria-label="${cardName(c)}, card ${i+1} from the top">${cardHTML(c)}<i>${i+1}</i></button>`).join('')}</div></div>`;
+  host.appendChild(el);VD.fan=el;
+  const go=id=>{removeEventListener('keydown',key,true);el.remove();VD.fan=null;sfx('card');res(id);};
+  const key=e=>{const n=+e.key;if(n>=1&&n<=cs.length){e.preventDefault();e.stopImmediatePropagation();go(cs[n-1].id);}else if(e.key=='Escape'){e.preventDefault();e.stopImmediatePropagation();}};
+  addEventListener('keydown',key,true);el.onclick=e=>{const b=e.target.closest('.ccrc[data-id]');if(b)go(+b.dataset.id);};});}
+// one move's price and meter (cmMeter's road, without a table: the Nerve, the needle by cost, the gold line); 'clean',
+// 'seen' (+1 heat added), 'no' (Don't cheat: its Nerve back, unless paid up front) or 'gone' (caught and walked out)
+async function vdMeter(D,x){x=Object.assign({},x);x.why=x.why||x.n;let res='no';const r0=R,b0=busy;R=vdR(D);busy=true;VD.src=null;
+  try{let q=x.nvQ;
+    if(!x.nvPaid){q=nvQuote(nvMoveId(x));if(!q.ok){nvNo(x.k);return 'no';}x.nvSteady=nvFull()&&q.tier>=2;nvPay(q);x.nvTier=q.tier;x.nvQ=q;}
+    // (cost 0 or 1: instant, no needle, clean; a flick at the thing)
+    if(q.tier<=1){CM.last=null;res=prInstant(x,{},{id:x.k});try{nvZap(x);}catch(e){}}
+    else if(chg('firealarm')&&!(x.free||cmFree(x))){useChg('firealarm');CM.last=null;cmAfter(x,'clean',{});if(SPEED>=.05)toast('<b>Fire alarm.</b> Nobody\'s watching: clean.',2200);res='clean';}
+    else{const o=cmLive(x),P=prPlan(x);o.pr=P;if(o.tip)cmTeach(o.tip);const W=trLive()?trWatch():null;
+      try{if(SPEED<.05||DRY||CM.force)res=await cmRun(x,o);
+        else if(P.place=='table'){prMeterUp(1);try{res=await prTableRun(x,o,P,prAnchor(x));}finally{prMeterUp(0);}}
+        else{o.hand=D.hole.slice();prMeterUp(1);try{res=await cmRun(x,o);}finally{prMeterUp(0);}}}
+      finally{if(W){W.stop();VD.src=W.r;}}
+      cmAfter(x,res,o);if(res=='no'&&!x.nvPaid)nvBack(q);}
+    if(res!='no')R.nvLast={id:q.id,cost:q.cost,tier:q.tier,res};}
+  catch(e){console.error(e);res='no';}
+  finally{R=r0;busy=b0;}
+  vdHudPaint();
+  if(res=='seen'&&!(await vdHeat(D,x.why)))return 'gone';
+  return res;}
+// a Made: +1 heat. Caught at the third: pay your way out and the duel goes on; walked out or the Black Book ends it
+async function vdHeat(D,why){const S0=S,k0=S.strikes|0;await addHeat(1,why,'meter');
+  if(S!==S0||!S||S.dead||(S.strikes|0)!==k0){VD.gone=1;try{VD.api&&VD.api.done('gone');}catch(e){}return false;}
+  const o=document.getElementById('ov');if(o.hidden||!o.querySelector('.vd')||o.classList.contains('ovgo'))ov('','wide duelov');
+  if(VD.api)VD.api.draw0();try{pop(document.getElementById('vdHeat'),'+1 heat','h');}catch(e){}return true;}
+// Nerve from betting, as at Hold'em: a check the bottom tier, a bet or a call the middle, Bet big a whole Nerve
+function vdEarn(D){if(!VD_EARN||!vdOn()||D.nvDone===D.hand)return;D.nvDone=D.hand;const a=Math.min(2,D.nvAct|0);
+  const p=Math.max(NV_PIPS[a],a>=2?NV_HE[0]*nvPer():0)+nvEarPips();nvAdd(p,'hand');}
+
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{VD,VD_IDS,VD_EARN,vdMoves,vdState,vdUse,vdMeter,vdTurn,vdQ,vdEarn});},0);
+
+// ===== 99zzk-baccx.js
+/* ================= baccarat: your sleeve card into their hand, and Cross the cards (Litty 2026-10-20) =================
+ Margot Sterling's Big Game had one real cheat (the Squeeze). Two more, both on the cards already dealt:
+ 1. Swap with hand takes a card on either side (Litty: "I was thinking it would use the sleeve card(s)"). Arm it (or tap
+    a card first): every card on the felt glows, the box says "Tap either side" and the felt "Tap a card on either side".
+    One of yours: your sleeve card raises your total. One of theirs (the side you didn't bet; Margot's claim in her Big
+    Game): it drops theirs. Either way the card it replaces goes up your sleeve. Same Nerve, meter and risk as ever
+    (sleeveSwap, 30-poker.js). The rules: 35-bacc.js (the Big Game's moment after the deal) and 97o-nvmoves.js (a regular
+    sitting's lost hand).
+ 2. Cross the cards, Pops' lesson from Bellagiorgio (a dealer-collusion switch: the dealer you've paid crosses one card
+    between the hands). Arm it, tap one of your side's two dealt cards and one of theirs: they trade places. 3 Nerve
+    (+1 under the Eye in the Sky), the Blink (the pit boss's lids: the dealer waits for him to look away). Made: +1 heat,
+    nothing moves, the cross is spent. Once a hand.
+    When: the Big Game, in the moment right after the deal (before anyone checks for a natural, before any third card or
+    squeeze); the coup then plays on from the crossed deal. A regular sitting, on a lost hand, as the other baccarat moves
+    there: the two dealt cards trade and the hand replays its third cards from the crossed deal (nvBaTableau) and settles
+    again. Third cards never cross: the window is the deal.
+ The trail: gold dust onto the two crossed cards, "9♠ crossed to you". The cards slide to their new hands.
+ Test: tools/tbaccx.js */
+if(NV_COST.cross==null)NV_COST.cross=3;
+PLAN_COST.cross=3;
+CHEAT_TIP.cross='Trade one dealt card with the other hand.';
+CHEAT_TIP_T.bacc=Object.assign(CHEAT_TIP_T.bacc||{},{swap:'Your sleeve card into either hand.'});
+CM_SKIN_OF.cross='blink';
+CB_DOES.cross='Trade two cards';
+CB_IDS.push('aCross');
+MN_BTN.aCross='cross';
+NV_BTNS.push(['#aCross','cross']);
+NV_HELPS.cross=()=>!!(R&&R.ba&&bxCtx()&&BA.crossOK()&&BA.crossHelps());
+PR_MOVE_AT.cross=()=>prQ('#tin .bacrow');
+// (Pops says it the first time Cross the cards is lit; the sleeve's new reach, once, at baccarat)
+MOVE_LINES.push(['#aCross','cross','"A dealer who owes you crosses one card. That\'s plenty."','bacc'],
+  ['#aSwap','baswap','"Your sleeve card fits their hand too. Sink their total."','bacc']);
+{const t0=teach;teach=function(key,txt,o){if(key=='mv_cross')o=Object.assign({},o||{},{who:'pops'});return t0.call(this,key,txt,o);};}
+TRAIL.cross={at:()=>{const b=R&&R.ba,ids=b&&b.cxLast;if(!ids)return null;return trU(ids.slice(0,2).map(id=>trR(document.querySelector(`#tin .bacrow .card[data-id="${id}"]`))));},
+  // (the hand may have settled by the time the dust flies: the side is the one saved with the cross)
+  lb:()=>{const b=R&&R.ba,ids=b&&b.cxLast;const c=ids&&b[ids[2]]&&b[ids[2]].find(x=>x.id==ids[1]);return c?`${trCN(c)} crossed to you`:'Cards crossed';}};
+
+// where a cross can happen now: the Big Game's moment after the deal ('fix'), a regular sitting's lost hand ('retro')
+function bxCtx(){const b=R&&R.t=='bacc'&&R.ba;if(!b||S.phase!='play')return null;if(b.phase=='fix'&&b.fix)return 'fix';
+  if(b.phase=='bet'&&b.retro&&!b.retro.used&&typeof nvRetroOK=='function'&&nvRetroOK())return 'retro';return null;}
+const BX_HINT='Tap one card on each side.',BX_SWHINT='Tap a card on either side.';
+// the button, in the CHEAT box with the rest
+{const a0=BA.actions;BA.actions=function(){const h=a0.apply(this,arguments);try{const b=R.ba;if(bxCtx()&&BA.crossOK())
+    return h+`<button class="btn cy${b.cx?' arm':''}" id="aCross" data-cheat="" ${busy?'disabled':''}>Cross the cards<span class="s">${b.cx?'Tap one each side':'One card each way'}</span></button>`;}catch(e){console.error(e);}return h;};
+ const bd0=BA.bind;BA.bind=function(){const v=bd0.apply(this,arguments);const e=$('#aCross');if(e)e.onclick=()=>BA.crossArm();return v;};}
+// arm it (a second press backs out). A card you'd already picked counts as one of the two
+BA.crossArm=function(){const b=R&&R.ba,ctx=bxCtx();if(busy||!b||!ctx||!BA.crossOK())return;
+  if(b.cx){bxDisarm();return;}
+  if(typeof CB!='undefined'&&CB.tgt)cbTgtSet(null);
+  const mk=BA.youK(),hk=BA.herK(),src=ctx=='fix'?b.fix:b.retro,sel=src.sel;b.cx={m:null,o:null,msg0:b.msg};
+  if(sel!=null){if(b[mk].slice(0,2).some(c=>c.id==sel))b.cx.m=sel;else if(b[hk].slice(0,2).some(c=>c.id==sel))b.cx.o=sel;}src.sel=null;
+  b.msg=bxMsg(b);sfx('card');BA.render();renderActions();
+  // (a phone: the Cheat sheet steps aside so you can tap the cards, as the swap's target mode does)
+  if(typeof PH!='undefined'&&PH.sheet&&typeof phCheat=='function')setTimeout(()=>phCheat(false),0);};
+function bxDisarm(){const b=R&&R.ba;if(!b||!b.cx)return;b.msg=b.cx.msg0;b.cx=null;BA.render();renderActions();}
+const bxMsg=b=>b.cx.m==null&&b.cx.o==null?BX_HINT:b.cx.m==null?'Now one of your two.':'Now one of their two.';
+// a card tapped while it's armed: one from each side (the two dealt cards only), then the meter
+BA.crossPick=async function(id){const b=R&&R.ba,ctx=bxCtx();if(busy||!b||!b.cx||!ctx)return;const mk=BA.youK(),hk=BA.herK();
+  const inM=b[mk].slice(0,2).some(c=>c.id==id),inO=b[hk].slice(0,2).some(c=>c.id==id);if(!inM&&!inO){sfx('err');return;}
+  if(inM)b.cx.m=b.cx.m==id?null:id;else b.cx.o=b.cx.o==id?null:id;sfx('card');
+  if(b.cx.m==null||b.cx.o==null){b.msg=bxMsg(b);BA.render();renderActions();return;}
+  const m=b.cx.m,o=b.cx.o,x=b.cx;b.msg=x.msg0;BA.render();
+  await (ctx=='fix'?BA.fixCross(m,o):nvBaCross(m,o));
+  // (backed out of the meter: it's off, nothing spent)
+  if(R&&R.ba===b&&b.cx===x){b.msg=x.msg0;b.cx=null;BA.render();renderActions();}};
+document.addEventListener('click',e=>{const b=R&&R.t=='bacc'&&R.ba;if(!b||!b.cx)return;const el=e.target.closest&&e.target.closest('#tin .bacrow .card[data-id]');if(!el)return;
+  e.stopImmediatePropagation();e.preventDefault();BA.crossPick(+el.dataset.id);},true);
+// the felt while it's armed: only the four dealt cards can be picked, the two you picked lift; the swap's armed look
+{const r0=BA.render;BA.render=function(){const v=r0.apply(this,arguments);try{const b=R.ba,row=$('#tin .bacrow');if(!row)return v;
+    if(b.cx){const ok=new Set(b.p.slice(0,2).concat(b.b.slice(0,2)).map(c=>String(c.id))),pk=[String(b.cx.m),String(b.cx.o)];row.classList.add('bacx');
+      for(const el of row.querySelectorAll('.card[data-id]')){const on=ok.has(el.dataset.id);el.classList.toggle('pick',on);el.classList.remove('sel');el.classList.toggle('cxsel',on&&pk.includes(el.dataset.id));el.classList.toggle('cxoff',!on);}}
+    bxFlip(b);}catch(e){console.error(e);}return v;};}
+// the two crossed cards slide to their new hands (a FLIP from where they were)
+{const c0=BA.cross;BA.cross=async function(){const b=R&&R.ba;const res=await c0.apply(this,arguments);
+  try{if(res=='clean'&&b&&b.cxLast&&SPEED>=.05&&!DRY&&!reduceMotion()){const f={};for(const id of b.cxLast.slice(0,2)){const el=document.querySelector(`#tin .bacrow .card[data-id="${id}"]`);if(el){const r=el.getBoundingClientRect();f[id]={x:r.left,y:r.top};}}b.cxFrom=f;}}catch(e){}
+  return res;};}
+function bxFlip(b){const f=b.cxFrom;if(!f)return;b.cxFrom=null;for(const id in f){const el=document.querySelector(`#tin .bacrow .card[data-id="${id}"]`);if(!el)continue;const r=el.getBoundingClientRect(),dx=f[id].x-r.left,dy=f[id].y-r.top;
+  if(Math.abs(dx)+Math.abs(dy)<2)continue;try{el.animate([{transform:`translate(${dx}px,${dy}px)`,zIndex:5},{transform:'translate(0,0)',zIndex:5}],{duration:Math.round(520*Math.max(.5,Math.min(1,SPEED))),easing:'cubic-bezier(.5,.1,.3,1)'});}catch(e){}}}
+// the swap armed at baccarat: the box says "Tap either side", the felt "Tap a card on either side." (and a cross backs out)
+{const b0=cbBtn;cbBtn=function(el){let h=b0.apply(this,arguments);try{if(el&&el.id=='aSwap'&&R&&R.t=='bacc'&&BA.youK())h=h.replace('<span class="cps">Tap a card</span>','<span class="cps">Tap either side</span>');}catch(e){}return h;};}
+{const t0=cbTgtSet;cbTgtSet=function(id){const v=t0.apply(this,arguments);try{const b=R&&R.t=='bacc'&&S&&S.phase=='play'&&R.ba;if(!b)return v;
+    if(id&&b.cx){b.msg=b.cx.msg0;b.cx=null;BA.render();}
+    if(id=='aSwap'&&BA.youK()){if(b.msg!=BX_SWHINT)b.swHint=b.msg;b.msg=BX_SWHINT;BA.render();const c=$('#aSwap .cps');if(c)c.textContent='Tap either side';}
+    else if(b.swHint!=null){if(b.msg==BX_SWHINT)b.msg=b.swHint;b.swHint=null;BA.render();}}catch(e){console.error(e);}return v;};}
+// the Booth's card says when (a cross you've made this hand: once a hand)
+MN_MOVES.cross.when=()=>R&&R.ba&&R.ba.crossed?'Once a hand':R&&(R.ser||R.isBoss)?'After the deal':'After a loss';
+
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{bxCtx,bxDisarm,BX_HINT,BX_SWHINT});},0);
+
+// ===== 99zzk-stardusk.js
+/* ================= the Stardusk's lessons (Litty 2026-10-20): three premium cheats Pops saves for the Don's casino =================
+ Pops' shop sold nothing new at the Stardusk: every lesson unlocked by Bellagiorgio. These three unlock there only
+ (MN_MOVES sd:1, 99zo-mentor.js mnSdLock: never in the shop or a free pick before it, "nothing from further down the
+ Strip"), and cost the most (MN_MOVES pr: $25,000 to $40,000; the next dearest is $3,000).
+ - The Shiner (glim; blackjack and High-Roller 21; 3 Nerve; the Blink): a polished lighter by your chips. One Clean and
+   the dealer's hole card shows every hand for the rest of the sitting (BJ.holeVisible, B21.holeVis). Peek is one look,
+   one hand, 1 Nerve; the Shiner is one try for the whole sitting. Not in a Big Game (its dealer is the boss).
+ - Marked cards (readers; Hold'em and Pick Five; 4 Nerve; the Cooler: a deck switch): readers switched in for the house
+   deck. One Clean and, for the rest of the sitting, every back reads: at Hold'em every player's two hole cards, every
+   hand (HE.spied); at Pick Five's Big Game every card in the boss's hand (spkReadWhy); at a Pick Five table the next 3
+   cards off the deck (sdRdN, the peek row). Peek is one player, one hand.
+ - Late bet (latebet; the Big Six; 3 Nerve; the Race, the Past-post's meter): Big Six dealers watch the wheel, not the
+   layout. After it stops off your slot, your chip slides onto the slot that came up, paid at its price. Once a spin.
+   The Big Six had one cheat at the Stardusk (Bump the wheel, a slot or two off); this one reaches any stop. A spin
+   that would sweep at once waits the settle clock instead while it's yours to make (BS.collect). Your bet goes back
+   to your own slot after the payout. Not in the Big Game (its spin decides both your slots).
+ Each goes through the meter: Clean, it happens; Made, +1 heat (the gate's) and nothing happens; you can try again.
+ Test: tools/tstardusk.js */
+const SD_IDS=['glim','readers','latebet'];
+const sdBig=()=>!!(R&&(R.ser||R.isBoss));
+Object.assign(CHEAT_TIP,{glim:'Every hole card, the rest of the sitting.',readers:'Readers in: every back reads, all sitting.',latebet:'Wheel stopped? Your chip slides onto it.'});
+Object.assign(CM_SKIN_OF,{glim:'blink',readers:'cooler',latebet:'race'});
+Object.assign(CB_DOES,{glim:'Every hole card',readers:'Read their cards',latebet:'Bet the winner'});
+try{Object.assign(PH_DESC,{glim:'The dealer\'s hole card, every hand this sitting.',readers:'Their hole cards, every hand this sitting.',latebet:'Slide your chip onto the slot that came up.'});}catch(e){}
+Object.assign(PR_MOVE_AT,{glim:()=>prQ(R.t=='bj21'?'#tin .b21dc':'#tin .bjrow:not(.me)'),readers:()=>prQ(R.t=='holdem'?'#tin .heopps,#tin .heseat':R.ser?'#tin .serfan':'#tin .deckpile'),latebet:()=>prQ('#tin .b6board')});
+NV_BTNS.push(['#aGlim','glim'],['#aReaders','readers'],['#aLatebet','latebet']);
+CB_IDS.push('aGlim','aReaders','aLatebet');
+Object.assign(MN_BTN,{aGlim:'glim',aReaders:'readers',aLatebet:'latebet'});
+// Pops' lines (12 words at most, no em dashes)
+MOVE_LINES.push(['#aGlim','glim','"A polished lighter by your chips. Every hole card is yours."'],
+  ['#aReaders','readers','"Switch in the readers. Every back at the table talks."'],
+  ['#aLatebet','latebet','"Big Six dealers watch the wheel. Slide your chip after it stops."']);
+// the gold dust: where each one lands, and what it says
+Object.assign(TRAIL,{glim:{at:()=>R&&R.t=='bj21'?trQ('#tin .b21dc .card:nth-child(2),#tin .b21dc'):trHole(),lb:()=>'Hole card, every hand'},
+  readers:{at:()=>R&&R.t=='holdem'?trQ('#tin .heopps,#tin .heseat'):trQ(R&&R.ser?'#tin .serfan,#tin .serhis':'#tin .peekrow,#tin .deckpile'),
+    lb:()=>R&&R.t=='holdem'?'Their cards, every hand':R&&R.ser?'His hand, read':'Next 3 cards, read'},
+  latebet:{at:'#tin .b6cell.on,#tin .b6board',lb:()=>{const b=R&&R.b6;return b&&b.bet?'Chip on '+b6Short(b.bet):'Chip on the winner';}}});
+
+/* ---------- when each can go ---------- */
+const sdGlimOn=()=>!!(R&&R.mnGlim&&(R.t=='bj'||R.t=='bj21'));
+function sdGlimNow(){if(!mnMoveOK()||!mnOn1('glim')||R.mnGlim||sdBig())return false;
+  if(R.t=='bj'){const b=R.bj;return !!b&&['bet','act'].includes(b.phase);}
+  if(R.t=='bj21')return !!R.b21&&ccB21Mine();return false;}
+const sdRdOn=t=>!!(R&&R.mnRd&&(!t||R.t==t));
+// (Pick Five: how many cards off the top your readers show; 30-poker.js's peek row and the watch's pkPeekN)
+function sdRdN(){try{return sdRdOn('poker')&&R.pk?3:0;}catch(e){return 0;}}
+function sdRdNow(){if(!mnMoveOK()||!mnOn1('readers')||R.mnRd)return false;
+  if(R.t=='holdem'){const h=R.he;return !!h&&(ccHeMine()||(h.phase=='deal'&&!busy));}
+  if(R.t=='poker'){const p=R.pk;return !!p&&p.hand.length>0;}return false;}
+// the Late bet: the wheel's stopped off your slot, this spin's not tried yet
+function sdLbSoon(){const b=R&&R.t=='bigsix'&&R.b6;return !!b&&!sdBig()&&mnMoveOK()&&mnOn1('latebet')&&b.spun&&b.res!=null&&B6[b.res]!=b.bet&&!b.lbUsed&&(nvCan('latebet')||nvCanSoon('latebet'));}
+const sdLbNow=()=>sdLbSoon()&&nvCan('latebet');
+
+/* ---------- the buttons (lifted into the CHEAT box with Pops' others) ---------- */
+function sdExtraHTML(){let h='';const on=mnOn1,t=R.t,B=(id,n,s,off)=>ccB(id,'a'+id[0].toUpperCase()+id.slice(1),n,s,off);
+  if((t=='bj'||t=='bj21')&&on('glim')&&!sdBig()){if(R.mnGlim)h+=B('glim','The Shiner','Set: every hand',1);else if(sdGlimNow())h+=B('glim','The Shiner','Hole card, all sitting',busy);}
+  if((t=='holdem'||t=='poker')&&on('readers')){if(R.mnRd)h+=B('readers','Marked cards','Set for the sitting',1);else if(sdRdNow())h+=B('readers','Marked cards','Every back reads',busy);}
+  if(t=='bigsix'&&on('latebet')&&sdLbSoon())h+=B('latebet','Late bet','Onto the '+b6Short(B6[R.b6.res]),busy);
+  return h;}
+{const x0=mnExtraHTML;mnExtraHTML=function(){const h=x0.apply(this,arguments);if(!mnMoveOK())return h;try{return h+sdExtraHTML();}catch(e){console.error(e);return h;}};}
+NV_HELPS.glim=()=>sdGlimNow()&&!(R.t=='bj'?BJ.holeVisible():B21.holeVis());
+NV_HELPS.readers=()=>sdRdNow();
+NV_HELPS.latebet=()=>sdLbNow();
+
+/* ---------- the moves ---------- */
+{const u0=mnUse;mnUse=async function(id){if(SD_IDS.includes(id))return sdUse(id);return u0.apply(this,arguments);};}
+async function sdUse(id){if(busy||!mnMoveOK()||(typeof CM!='undefined'&&CM.on)||!mnLoaded(id))return false;const r=R;
+  const gate=async x=>{const g=await cmGate(x);return R!==r||g=='no'||g=='gone'?null:g;};
+  const done=()=>{if(R===r&&S&&S.phase=='play'){render();renderActions();saveRun();}};
+  if(id=='glim'){if(!sdGlimNow())return false;const bj=R.t=='bj',st=bj?R.bj:R.b21;
+    const g=await gate({k:'glim',n:'The Shiner',why:'The shiner',skin:'blink',at:bj?'#tin .bjrow:not(.me)':'#tin .b21dc'});if(!g)return false;
+    if(cmGo(g)){R.mnGlim=1;sfx('flip');st.msg='A shiner by your chips. Every hole card, all sitting.';}else st.msg='Made. The shiner stays in your pocket.';done();return cmGo(g);}
+  if(id=='readers'){if(!sdRdNow())return false;const he=R.t=='holdem',st=he?R.he:R.pk;
+    const g=await gate({k:'readers',n:'Marked cards',why:'Switching in readers',skin:'cooler',at:he?'#tin .heopps':R.ser?'#tin .serfan':'#tin .deckpile'});if(!g)return false;
+    if(cmGo(g)){R.mnRd=1;sfx('deal');st.msg=he?'The readers are in. Every back at the table talks.':R.ser?'The readers are in. You read his whole hand.':'The readers are in. You read the next 3 cards.';if(he)heFeed('A marked deck slides in');}
+    else st.msg='Made. The house deck stays.';done();return cmGo(g);}
+  if(id=='latebet'){const b=R.b6;if(!sdLbNow())return false;b.lbUsed=1;
+    const g=await gate({k:'latebet',n:'Late bet',why:'Past-posting the wheel',skin:'race',at:'#tin .b6board'});if(!g||!R.b6||R.b6!==b)return false;
+    if(cmGo(g)){const k=B6[b.res];b.lbFrom=b.lbFrom||b.bet;b.bet=k;sfx('chip');b.msg=`Late bet: your chip's on the <b>${b6Short(k)}</b>.`;}else b.msg='Made. The dealer slides your chip back.';
+    if(S.phase=='play'){BS.render();renderActions();saveRun();}if(b.settle&&!busy)BS.collect();return cmGo(g);}
+  return false;}
+
+/* ---------- what they show ---------- */
+// the Shiner: the hole card face up for you, every hand of the sitting
+{const v0=BJ.holeVisible;BJ.holeVisible=function(){return v0.apply(this,arguments)||!!(R&&R.t=='bj'&&sdGlimOn()&&R.bj&&R.bj.d[1]);};}
+{const v0=B21.holeVis;B21.holeVis=function(){return v0.apply(this,arguments)||!!(R&&R.t=='bj21'&&sdGlimOn()&&R.b21&&R.b21.e.d[1]);};}
+// Marked cards at Hold'em: every player's two cards face up for you; his seat says how you know
+{const s0=HE.spied;HE.spied=function(i){return s0.apply(this,arguments)||!!(sdRdOn('holdem')&&R.he&&R.he.opp[i]);};}
+{const r0=HE.render;HE.render=function(){const v=r0.apply(this,arguments);try{if(sdRdOn('holdem')){const h=R.he;$$('#tin .heseat').forEach((st,i)=>{const o=h.opp[i];if(!o||ccSpied0(i)||(h.mnPkOk&&h.mnPk===i))return;
+      st.classList.add('sdread');const sp=st.querySelector('.spy');if(sp)sp.textContent='Read off the back';});}}catch(e){console.error(e);}return v;};}
+// (every card already reads: nobody left to Peek at)
+{const p0=ccPeekable;ccPeekable=function(){return sdRdOn('holdem')?[]:p0.apply(this,arguments);};}
+// Pick Five's Big Game: the boss's whole hand, read off the backs
+{const w0=spkReadWhy;spkReadWhy=function(c){return w0.apply(this,arguments)||(sdRdOn('poker')&&R.ser?'Readers':'');};}
+// a Pick Five table: the peek row says whose eyes it is
+{const r0=PK.render;PK.render=function(){const v=r0.apply(this,arguments);try{if(sdRdN()){const p=R.pk,o=Math.max(p.peek?5:rigOn('cufflink')?2:0,setupOn('sky')?3:0,setupOn('signal')?2:0),pr=$('#tin .peekrow');
+      if(pr&&sdRdN()>o){const t=pr.firstChild;if(t&&t.nodeType==3)t.textContent='Your readers: ';pr.classList.add('sdread');}}}catch(e){console.error(e);}return v;};}
+// the Late bet: a spin that would sweep at once waits the settle clock while it's yours to make
+{const s0=BS.spin;BS.spin=async function(){const b=R&&R.b6;if(b&&!busy&&b.bet&&!b.spun){b.lbUsed=0;b.lbSpin=1;}return s0.apply(this,arguments);};}
+{const l0=BS.landed;BS.landed=function(){const v=l0.apply(this,arguments);try{const b=R&&R.b6;if(b&&b.lbSpin){b.lbSpin=0;if(sdLbSoon()&&SPEED>=.05){b.lbHold=1;setTimeout(()=>{b.lbHold=0;},0);}}}catch(e){console.error(e);}return v;};}
+{const c0=BS.collect;BS.collect=async function(){const b=R&&R.b6;
+  if(b&&b.lbHold&&!busy&&b.spun&&b.res!=null){b.lbHold=0;b.settle=0;cheatClock(6,()=>BS.land(),'The wheel settles');BS.clockHome();BS.render();renderActions();return;}
+  const v=await c0.apply(this,arguments);
+  // (paid: your own chip goes back on your own slot for the next spin)
+  try{if(b&&b.lbFrom&&!b.spun){b.bet=b.lbFrom;b.lbFrom=null;if(R&&R.b6===b&&S.phase=='play'&&!busy){BS.render();renderActions();}}}catch(e){console.error(e);}return v;};}
+
+/* ---------- the smartwatch: the Shiner (99c-smartwatch.js SWT.bj), Hold'em's read cards, the Late bet ---------- */
+function sdGlimSw(){try{return R.t=='bj'&&!R.mnGlim&&!sdBig()&&mnMoveOK()&&mnOn1('glim')&&nvCan('glim');}catch(e){return false;}}
+const sdLbSw=()=>{try{const b=R.b6;return !!b&&!sdBig()&&mnMoveOK()&&mnOn1('latebet')&&nvCan('latebet')&&(!b.spun||sdLbSoon());}catch(e){return false;}};
+{const g0=SWT.bj.sig;SWT.bj.sig=function(){return g0.apply(this,arguments)+'|'+(R.mnGlim?'G':sdGlimSw()?'g':'');};}
+{const g0=SWT.holdem.sig;SWT.holdem.sig=function(){return g0.apply(this,arguments)+'|'+(R.mnRd?'R':'');};}
+{const g0=SWT.bigsix.sig,c0=SWT.bigsix.calc;SWT.bigsix.sig=function(){const b=R.b6;return g0.apply(this,arguments)+'|'+(sdLbSw()?'l':'')+(b.lbUsed?'u':'');};
+  SWT.bigsix.calc=function*(){const r=yield* c0.apply(this,arguments);try{if(r&&r.p!=null&&sdLbSw()){r.opts=(r.opts||[]).concat([swOpt('latebet','Late bet',1,'cheat',1,'Late bet: your chip onto whatever comes up')]);}}catch(e){console.error(e);}return r;};}
+
+/* ---------- Pops' shop at the Stardusk: his line, the first visit they're on sale ---------- */
+const SD_POPS='Saved the good ones for the Don\'s place. Cash only.';
+{const s0=mnShopTabHTML;mnShopTabHTML=function(){const h=s0.apply(this,arguments);try{if(mnByFilt(mnShopList()).some(id=>MN_MOVES[id].sd))return h.replace(`"${MN_LINES.cash}"`,`"${SD_POPS}"`);}catch(e){console.error(e);}return h;};}
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{SD_IDS,SD_POPS,sdGlimNow,sdRdNow,sdRdN,sdLbSoon,sdLbNow,sdUse,sdExtraHTML,sdGlimSw,sdLbSw,mnSdLock,MN_SD_CI});},0);
 
 boot();
 })();
