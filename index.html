@@ -11667,6 +11667,17 @@ html.phdr #app.narrow.attable #side>.pl>.nervebox .nvsegs i{height:12px;border-r
 /* the house limit pop-up: why he sent for you, plain (98-house.js houseWhy) */
 .housecall p.hcwhy{font-style:normal;font-weight:600;color:#fbf7ee}
 
+/* ===== css/zzzzzzzzzzzzzzzzzzzacebj.css */
+/* Ace in the Hole at 21 (99zzl-acehole.js): armed, your cards say tap me; the Big Game's result line over the dealer's note */
+#app.aharm #bjP .card,#app.aharm #tin .b21seat.me .b21cs .card{cursor:pointer;box-shadow:0 0 0 2px #f6c453,0 0 14px #f6c45388}
+#bjMsg .bjsercall{display:block;color:#ffe9a6}
+
+/* ===== css/zzzzzzzzzzzzzzzzzzzscriptlock.css */
+/* Bambi's scripted walkthroughs (01d-scriptlock.js): while she's talking, what's locked sits back; her lit spot stays lit */
+body.sclock #actions>*:not(.wospot):not(.cdspot),body.sclock #bStand,body.sclock #bDeck,body.sclock #phTab,
+body.sclock #cheatPanel:not(.wospot),body.sclock #aCheat:not(.wospot),body.sclock .cxside,body.sclock #tin [data-bet]{opacity:.45;filter:saturate(.35);transition:opacity .25s,filter .25s;cursor:default}
+body.sclock:not(.cdfewer) #crMore{opacity:.45;filter:saturate(.35);cursor:default}
+
 </style>
 <div id="app">
   <aside id="side"></aside>
@@ -12692,6 +12703,77 @@ const ROOM=(()=>{const K=AUD._k,{F32,RN,lp1,hp1,norm,modal,SR,GEN,BANK}=K,mtof=K
     for(let x=2+rr()*4;x<secs-3;x+=5+rr()*6)K.crowdShot(rr()<.5?'cheer':rr()<.5?'applause':'groan',.35+rr()*.4,{far:1,pan:rr()*1.6-.8,size:1,delay:x});}
   return {start,stop,level:l=>{LVL=l;level0();},apply:level0,bell,dip,offline,offlineBed,ready:()=>prerender(1),preview,ev,PROF,get key(){return RM&&RM.key;},get on(){return !!RM;}};
 })();
+
+// ===== 01d-scriptlock.js
+/* ================= Bambi's scripted walkthroughs: hands off till she's done (Litty 2026-10-21) =================
+ "i can start the meter and screw up Bambi's walkthrough at craps...dont let the user do anything until she is done...they
+ can skip it by pressing skip though". One gate for every scripted walkthrough: while one runs, every press, click and key
+ goes nowhere except
+   - Skip (#frSkip), her own buttons ([data-cd] Keep practicing / Play for real, [data-wo] Keep playing / Look around),
+     her bubble or a phone's top card (her OK), a pop-up (#ov), the Menu;
+   - what her step asks you to do: at the craps demo's practice rolls (CD step 'try': "Tap the felt", "Set your dice,
+     then press anywhere") the felt, your dice and Space/Enter throw; mid-throw every press is the meter's.
+ Locked: the craps demo (99zy-crdemo.js) start to end; the walk-over (99zu-walkover.js) while her token walks you over,
+ while you sit, and while any of her lines waits for OK (the hand on the house and her closing choice stay yours); the
+ first run's alley tour and Card Room stop (99zp-frend.js) while her lines hold the lot (busy). The first run's table
+ script has its own gates (99zc-firstrun.js frGuard). A blocked tap nudges her bubble: she's still talking.
+ Registered this early (01d) so its capture listeners on window run before every other handler. Test: tools/tdemolock.js */
+const SLK={blocked:0,log:[],free:null,rel:[],rescue:{}};
+const SL_ALWAYS='#frSkip,[data-cd],[data-wo],#bstage,#info.coachbar,#ov,#bMenu,#bLogo,#cdov,#mnTour';   // (#mnTour: her OK lines inside Pops' booth on the tour)
+// what's locked right now: {who, step, practice} or null (slRaw: with the script's own state object, for the safety release below)
+function slRaw(){try{
+  if(typeof CD!='undefined'&&CD.on&&cdLive(CD.on)){const D=CD.on;return {who:'cd',step:D.step,practice:D.step=='try'&&!CTM.lock,o:D};}
+  if(typeof WO!='undefined'&&WO.on&&woLive(WO.on)){const W0=WO.on;if(W0.wake||['floor','floor2','sit','table'].includes(W0.step))return {who:'wo',step:W0.step,o:W0};}
+  if(typeof FRA!='undefined'&&FRA.on&&busy&&S&&!S.dead)return {who:'fra',step:FRA.on.room?'room':'tour',o:FRA.on};
+ }catch(e){}return null;}
+function slState(){const L=slRaw();if(!L||(SLK.free&&SLK.free===L.o))return null;return L.who=='cd'?{who:L.who,step:L.step,practice:L.practice}:{who:L.who,step:L.step};}
+// the craps demo's practice rolls: the felt and your dice (not a bet, the dice case, a picked die, Fewer bets, a button)
+function slPracticeOk(t){if(typeof CTM!='undefined'&&CTM.live())return true;
+  return !!t.closest('#tin')&&!t.closest('[data-bet],.cxside,.cxcase,[data-di],[data-bag],#crMore,#cheatPanel,button,a,input,select');}
+function slAllowed(t,L){if(!t||!t.closest)return false;if(t.closest(SL_ALWAYS))return true;
+  // (a cheat meter or pop-up already up runs to its end)
+  if(typeof CM!='undefined'&&CM.on&&t.closest('#cmeter'))return true;
+  return !!(L.practice&&slPracticeOk(t));}
+// a blocked tap: her bubble (a phone: her top card) gives a little shake
+function slNudge(){const now=performance.now();if(now-(SLK.nudgeAt||0)<350)return;SLK.nudgeAt=now;
+  const b=document.querySelector('#bstage:not([hidden]) .bsbub')||document.querySelector('#info.coachbar');
+  if(b&&b.animate&&!(typeof reduceMotion=='function'&&reduceMotion()))b.animate([{transform:'none'},{transform:'translateX(-6px)'},{transform:'translateX(5px)'},{transform:'none'}],{duration:280});}
+function slGate(e){const L=slState();if(!L)return;const t=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
+  if(slAllowed(t,L))return;e.stopImmediatePropagation();
+  // (no preventDefault on touches: a phone still scrolls the page)
+  if(e.cancelable&&!/^touch/.test(e.type))e.preventDefault();
+  SLK.blocked++;if(SLK.log.length<60)SLK.log.push({who:L.who,step:L.step,ev:e.type,el:t&&(t.id||t.className||t.tagName)+''});
+  if(e.type=='pointerdown')slNudge();}
+for(const ev of ['pointerdown','pointerup','mousedown','mouseup','click','dblclick','contextmenu','touchstart','touchend'])
+  addEventListener(ev,slGate,{capture:true,passive:false});
+// keys: none while she's talking (a pop-up's and a text box's are theirs); at the practice rolls Space/Enter throw
+addEventListener('keydown',e=>{const L=slState();if(!L)return;if(e.ctrlKey||e.metaKey||e.altKey||e.key=='Tab')return;
+  const o=document.getElementById('ov');if(o&&!o.hidden)return;if(typeof CM!='undefined'&&CM.on)return;
+  const tg=e.target;if(tg&&tg.closest&&tg.closest('input,textarea,select'))return;
+  if(L.practice&&(e.key==' '||e.key=='Enter'))return;
+  // (a focused Skip or one of her buttons: Enter/Space presses it)
+  if((e.key==' '||e.key=='Enter')&&tg&&tg.closest&&tg.closest('#frSkip,[data-cd],[data-wo]'))return;
+  e.stopImmediatePropagation();if(e.key==' '||e.key=='Enter'||(e.key||'').startsWith('Arrow'))e.preventDefault();SLK.blocked++;},true);
+// what's locked looks it: the bar, Leave the table, Your stuff, the CHEAT box sit back (her lit spot stays lit)
+setInterval(()=>{try{const L=slState(),b=document.body;if(!b)return;b.classList.toggle('sclock',!!L);b.classList.toggle('sclockp',!!(L&&L.practice));}catch(e){}},150);
+/* the safety release (2026-10-21: a phone was left in the lot with the tour's lock on and nothing on screen to press):
+ the lock only holds while something on screen can move her script on: Skip, one of her buttons, her bubble or top card
+ with a line, her OK in Pops' booth, a pop-up. None of that on screen for 2 s: the lock lets go of that script (logged
+ in SLK.rel) and the script is told to wrap up (SLK.rescue[who], set by its own file). A broken script never traps you. */
+const SL_FWD='#frSkip,[data-cd],[data-wo],#cdov,#mnTour .mntok',SL_STUCK_MS=2000;
+function slOnScreen(e){if(!e||!e.isConnected)return false;const r=e.getBoundingClientRect();
+  if(r.width<4||r.height<4||r.bottom<=0||r.right<=0||r.top>=innerHeight||r.left>=innerWidth)return false;
+  const cs=getComputedStyle(e);return cs.visibility!='hidden'&&+cs.opacity>.05;}
+function slWayOn(){const o=document.getElementById('ov');if(o&&!o.hidden&&slOnScreen(o.querySelector('.ovb')||o))return true;
+  for(const e of document.querySelectorAll(SL_FWD))if(slOnScreen(e))return true;
+  const st=document.getElementById('bstage');if(st&&!st.hidden){const b=st.querySelector('.bsbub');if(b&&slOnScreen(b)&&(b.textContent||'').trim())return true;}
+  const c=document.querySelector('#info.coachbar');return !!(c&&slOnScreen(c)&&(c.textContent||'').trim());}
+setInterval(()=>{try{const L=slRaw();if(!L||(SLK.free&&SLK.free===L.o)||slWayOn()){SLK.since=0;return;}
+  const now=performance.now();if(!SLK.since){SLK.since=now;return;}if(now-SLK.since<SL_STUCK_MS)return;
+  SLK.since=0;SLK.free=L.o;const r={who:L.who,step:L.step,at:Math.round(now)};SLK.rel.push(r);console.warn('scriptlock: released, nothing on screen moves the script on',JSON.stringify(r));
+  const f=SLK.rescue[L.who];if(f)try{f(L.o);}catch(e){console.error('scriptlock rescue',e);}
+ }catch(e){}},250);
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{SLK,slState,slRaw,slAllowed,slWayOn});},0);
 
 // ===== 02-art.js
 /* ================= art: portraits, cards, dice, symbols, icons ================= */
@@ -13843,6 +13925,8 @@ const P_=(n,d)=>`${Math.min(n*luckMul(),d)} in ${d}`;
 const isFace=c=>!!c&&c.enh!='chip'&&c.r>=11&&c.r<=13;
 const rk=c=>c.enh=='chip'?0:c.r;
 const xOne=w=>/(x|ss)es$/.test(w)?w.slice(0,-2):w.replace(/s$/,'');
+// the Night Auditor: ¤ per Nerve left after a Big Game win ($525 at Benny's). The Grinder: wins in a row he counts, at most
+const AUDITOR_U=1.5,GRIND_CAP=10;
 // the table's own move (Discard at poker, Slap at the slots...): one word at a table, "table move" anywhere else
 // (Litty, 2026-10-09: the old list "Slap, Discard, Squeeze..." read like a list with an ellipsis; "play" is the Pinky Ring's word)
 function xMoves(n=1,noPoker=false){const t=S&&S.phase=='play'&&R&&R.t&&TABLES[R.t]&&TABLES[R.t].d;
@@ -13876,8 +13960,9 @@ const CREW={
   valet:{n:'Valet Vern',r:'the Parker',rar:1,$:5,tb:['any'],d:'+5% pay for each Nerve you hold.',a:{g:'m',hair:'slick',hc:'#3a2414',out:'vest',oc:'#c71f3d',hat:'cap',hatc:'#c71f3d'},
     q:'Parks your car in Reno. Brings it back eventually.',// (Litty 2026-10-19: "dont understand this perk": paid on the Nerve you're holding, not table moves left)
     async hand(X){const n=nerveOn()?nvS().n:R.disc;if(n>0)await X.p(5*n);}},
-  lastcall:{n:'Last-Call Lucy',r:'the Closer',rar:1,$:5,tb:['any'],d:()=>`+25% pay when your ${xMoves(2)} are used up or unaffordable.`,a:{g:'f',hair:'bob',hc:'#1b120c',out:'vest',oc:'#111',mouth:'smirk',lip:'#c71f3d'},
-    q:'Vegas bars never close. She calls last call anyway.',async hand(X){if(R.disc<=0)await X.p(25);}},
+  lastcall:{n:'Last-Call Lucy',r:'the Closer',rar:1,$:5,tb:['any'],d:'+25% pay while your Nerve is empty.',a:{g:'f',hair:'bob',hc:'#1b120c',out:'vest',oc:'#111',mouth:'smirk',lip:'#c71f3d'},
+    q:'Vegas bars never close. She calls last call anyway.',// (Litty 2026-10-21: paid on an empty Nerve bar, not used-up table moves)
+    async hand(X){if(nerveOn()?nvS().n==0:R.disc<=0)await X.p(25);}},
   uncle:{n:'Drunk Uncle Earl',r:'the Wild Card',rar:1,$:4,tb:['any'],d:'+0% to +40% pay. Nobody knows.',a:{g:'m',hair:'bald',hc:'#bfc0c8',out:'open',oc:'#e05a9a',mouth:'o',blush:1,gl:'round'},
     q:'Here for a wedding. Not sure whose.',async hand(X){await X.p(DRY?20:rnd(41));}},
   knuckles:{n:'Knuckles',r:'the Enforcer',rar:1,$:5,tb:['poker'],d:'+5% pay per point of your lowest card kept.',a:{g:'m',hair:'buzz',hc:'#1b120c',out:'track',oc:'#1b1b24',brow:'stern',mouth:'flat',jaw:'sq',acc:['chain']},
@@ -13890,14 +13975,18 @@ const CREW={
     q:'Shows you a trick. Then shows you the door.',async card(X,c){if(isFace(c)&&chance(1/3))await X.cash(5);}},
   loanshark:{n:'Lenny',r:'the Loan Shark',rar:1,$:1,tb:['any'],d:'You can spend down to −¤25.',a:{g:'m',hair:'slick',hc:'#1b120c',out:'suit',oc:'#5a0a14',acc:['chain','cigar'],mouth:'smirk',fh:'pencil'},
     q:'Six for five, every week, forever. Friendly guy.',mods(m){m.debt+=25;}},
-  auditor:{n:'The Night Auditor',r:'Graveyard Shift',rar:1,$:4,tb:['any'],d:()=>`Big Game won, none used: +¤6 per ${xMoves(1)} left or affordable.`,a:{g:'f',hair:'bun',hc:'#3a2414',gl:'round',out:'suit',oc:'#3a3a44',mouth:'flat'},
-    q:'Reads every receipt. Remembers every face.',end(){return R&&R.discUsed==0?2*R.disc:0;}},
+  auditor:{n:'The Night Auditor',r:'Graveyard Shift',rar:1,$:4,tb:['any'],d:'Big Game won: +¤1.5 for each Nerve you have left.',a:{g:'f',hair:'bun',hc:'#3a2414',gl:'round',out:'suit',oc:'#3a3a44',mouth:'flat'},
+    q:'Reads every receipt. Remembers every face.',// (Litty 2026-10-21: paid on the Nerve you hold when you win a Big Game. AUDITOR_U per Nerve: $525 at Benny's.
+    // endExact: the payout line isn't rounded to whole ¤3 steps, 50-flow.js shiftWon)
+    endExact:1,end(){return R&&(R.ser||R.isBoss)&&nerveOn()?nvS().n*AUDITOR_U/3:0;}},
   fence:{n:'Fenced Freddie',r:'the Fence',rar:1,$:4,tb:['poker'],d:'+¤1 for each face card you discard.',a:{g:'m',hair:'curly',hc:'#3a2414',out:'track',oc:'#2a6a3a',acc:['chain'],mouth:'grin'},
     q:'"Rolex? Real. Probably. Don\'t ask."',async onDiscard(cs){const n=cs.filter(isFace).length;if(n){const g=earn(usd(n));toast(`Freddie fences ${n>1?n+' faces':'a face'}: +${money(g)}`);}}},
   greeter:{n:'Smiley',r:'the Greeter',rar:1,$:4,tb:['cards'],d:'+10% pay for each face card in the win.',a:{g:'m',hair:'bald',hc:'#bfc0c8',out:'vest',oc:'#c71f3d',mouth:'grin',blush:1},
     q:'Smiles at everyone. Remembers everyone. Reports everyone.',async card(X,c){if(isFace(c))await X.p(10);}},
-  grinder:{n:'The Grinder',r:'the Lifer',rar:1,$:4,tb:['any'],d:me=>`+3% pay per win. Each Discard, Reroll, Cap or Slap: −3%. (Now +${3*(me.v.n||0)}%)`,a:{g:'m',hair:'side',hc:'#bfc0c8',out:'open',oc:'#2a6a3a',gl:'round',mouth:'flat'},
-    q:'Thirty years at the $5 table. Has never been home.',onPlay(X,me){me.v.n=(me.v.n||0)+1;},onUseDisc(me){me.v.n=Math.max(0,(me.v.n||0)-1);},async hand(X,me){if(me.v.n)await X.p(3*me.v.n);}},
+  grinder:{n:'The Grinder',r:'the Lifer',rar:1,$:4,tb:['any'],d:me=>`+3% pay per win in a row, up to +${3*GRIND_CAP}%. (Now +${3*(me.v.n||0)}%)`,a:{g:'m',hair:'side',hc:'#bfc0c8',out:'open',oc:'#2a6a3a',gl:'round',mouth:'flat'},
+    q:'Thirty years at the $5 table. Has never been home.',// (Litty 2026-10-21: cheating no longer costs him. A win in a row counts once per play (me.v.w); a play you don't win
+    // starts him over, grindTick in 50-flow.js afterPlay)
+    onPlay(X,me){if(!me.v.w){me.v.w=1;me.v.n=Math.min(GRIND_CAP,(me.v.n||0)+1);}},async hand(X,me){if(me.v.n)await X.p(3*me.v.n);}},
   revue:{n:'The Revue',r:'the Showstoppers',rar:1,$:5,tb:['poker'],d:'+20% pay per Queen left in your hand.',a:{g:'f',hair:'bob',hc:'#111',hat:'feathers',out:'sequin',oc:'#f6c453',eyes:'glam'},
     q:'Twelve dancers, two shows a night, zero patience.',async held(X,c){if(rk(c)==12)await X.p(20,c);}},
   bootstraps:{n:'Bootstraps Bill',r:'the Self-Made Man',rar:2,$:7,tb:['any'],d:'+6% pay per ¤6 in your bankroll.',a:{g:'m',hair:'side',hc:'#a8652a',hat:'cowboy',out:'suit',oc:'#6b3a1c'},
@@ -13955,7 +14044,7 @@ a:{g:'f',hair:'waves',hc:'#c71f3d',out:'halter',oc:'#ff8ab0',eyes:'wink',lip:'#c
     q:'Lost a finger to a cash drawer. Still faster than you.'},
   shortcut:{n:'Shortcut Shirley',r:'the Cabbie',rar:1,$:5,tb:['poker'],starter:1,d:'Straights can skip one rank (3-4-6-7-8).',a:{g:'f',hair:'bob',hc:'#e0b34a',out:'open',oc:'#f6c453',hat:'cap',hatc:'#f6c453',mouth:'smirk'},
     q:'Knows every back road from Fremont to the Strip. Skips the boring parts.'},
-  bookends:{n:'The Bookend Brothers',r:'the Doormen',rar:1,$:5,tb:['poker'],d:'When you play 5 cards, the first and last count twice if they count: +5% pay each time.',again:1,a:{g:'m',hair:'buzz',hc:'#1b120c',out:'tux',gl:'shades',mouth:'flat'},
+  bookends:{n:'The Bookend Brothers',r:'the Doormen',rar:1,$:5,tb:['poker'],d:'Play 5 cards: the first and last count twice if they count, +5% pay each time.',again:1,a:{g:'m',hair:'buzz',hc:'#1b120c',out:'tux',gl:'shades',mouth:'flat'},
     q:'One stands left of the door. One stands right. Nobody gets past the middle.',retrig(X,c){const p=X.played;if(X.t!='poker'||!p||p.length!=5)return 0;return (c===p[0]||c===p[4])?1:0;}},
   stacker:{n:'Shuffle-Bug Stu',r:'the Stacker',rar:1,$:5,tb:['poker'],starter:1,d:'+1 card in your hand.',a:{g:'m',hair:'curly',hc:'#1b120c',out:'vest',oc:'#1b1b24',acc:['toothpick'],eyes:'narrow',mouth:'smirk'},
     q:'Stacks a hand in the riffle. Looks bored doing it.',
@@ -14208,7 +14297,9 @@ const TRICKS={
   moveline:{n:'Move the Line',ic:'phone',tb:['sports'],$:4,heat:0,d:'Use before you bet: for your next 3 tickets, every spread moves 3 points your way.',q:'Fake money on the other side. The book flinches. You pounce.'},
   stacked:{n:'Stacked Deck',ic:'copy',tb:['poker'],$:3,heat:1,d:'Tap a card: your next 3 cards are its suit.',q:'Thirty seconds alone with the deck. That\'s all it takes.'},
   misdeal:{n:'Call a Misdeal',ic:'muck',tb:['poker'],$:3,heat:1,d:'Got nothing? Trade your whole hand for a fresh one. No discard used.',q:'"Dealer flashed a card!" He didn\'t. Nobody can prove it.'},
-  acehole:{n:'Ace in the Hole',ic:'sleeve2',tb:['poker'],$:4,heat:1,d:'A spare Ace joins your hand at this table.',q:'Taped under the table before the game. Patience is a virtue.'},
+  // (Litty 2026-10-21: 21 too, a card made an Ace, 99zzl-acehole.js. 'bj' covers High-Roller 21, TABLES.bj21.kind; listing
+  // bj21 as well made the pocket tag three lines, past the card)
+  acehole:{n:'Ace in the Hole',ic:'sleeve2',tb:['poker','bj'],$:4,heat:1,d:'Pick Five: a spare Ace. Blackjack: a card becomes an Ace.',q:'Taped under the table before the game. Patience is a virtue.'},
   // the Cold Deck (Litty 2026-10-10): a stacked deck switched in under the table, played as The Cooler (97g-meter.js: four
   // notes, Cut, Lift, Switch, Square). Rare (rare: a quarter as likely at the Fixer, never a free random trick) and dear
   cooler:{n:'Cold Deck',ic:'cooler',tb:['poker','holdem'],$:7,heat:1,rare:1,d:'Switch in a stacked deck: your next hand is a Full House. Hold\'em: it comes on the flop.',q:'Fifty-two cards in your jacket, in order since Tuesday.'},
@@ -14238,7 +14329,7 @@ const GEAR={
   holdcam:{s:'Slaps cost 1 less',n:'Reel Reader',ic:'camera',tb:['slots'],$:7,heat:2,d:'Slaps cost 1 less.',q:'A camera on the reels. You know what\'s coming. Mostly.'},
   idkit:{s:'+1 heat fades a break',n:'Fake ID Kit',ic:'fakeid',tb:['any'],$:7,heat:0,d:'Each break, 1 more heat fades.',q:'Six names, six birthdays, one face.'},
   holdout:{s:'Free sleeve swaps',n:'Kepplinger Rig',ic:'holdout',tb:['poker','bj','bacc'],$:8,heat:2,d:'Swap with hand costs 0.',q:'Spring-loaded sleeve rig, worked with your knees. Invented 1888.'},
-  slider:{s:'+2 Rerolls',n:'Dice Slider',ic:'slider',tb:['craps'],$:8,heat:2,d:'+2 Rerolls. Each die holds your set 15% of throws, not 1%.',q:'Practice makes perfect. Perfect makes suspicious.'},
+  slider:{s:'+2 Rerolls',n:'Dice Slider',ic:'slider',tb:['craps'],$:8,heat:2,d:'+2 Rerolls. Bigger gold on the throw meter.',q:'Practice makes perfect. Perfect makes suspicious.'},
   electric:{s:'No 7 after a point',n:'Electric Dice',ic:'magnet',tb:['craps'],$:10,heat:4,d:'The first roll after a point is set can\'t be a 7.',q:'Iron slugs in the dice, a magnet under the felt, a guy on a switch.'},
   eudaemon:{s:'See the ball zone',n:'The Eudaemon Shoe',ic:'shoe',tb:['roulette'],$:9,heat:3,d:'Once a shift, see which part of the wheel the ball lands in.',q:'A computer in your shoe, worked with your big toe. Physics students built it.'},
   clawkey:{s:'+20% claw grip',n:'Claw Strength Key',ic:'tips',tb:['claw'],$:8,heat:3,d:'+20% grip on every grab.',q:'A copy of the technician\'s key. The bears never stood a chance.'},
@@ -14247,7 +14338,7 @@ const GEAR={
   deeppockets:{s:'+1 pocket slot',n:'Deep Pockets',ic:'suit',tb:['any'],$:5,heat:0,starter:1,d:'+1 pocket slot.',q:'Your tailor asked no questions. Your tailor got paid in chips.'},
   cufflink:{s:'See next 2 cards',n:'Cufflink Camera',ic:'camera',tb:['poker'],$:6,heat:1,starter:1,d:'Always see the next 2 cards in the deck.',q:'Monogrammed. The monogram is a lens.'},
   nailnick:{s:'Marks a discard',n:'Nail Nick',ic:'nick',tb:['poker'],$:5,heat:1,starter:1,d:'The first card you discard each sitting becomes Marked.',q:'A sharpened thumbnail. Every card it touches, you\'ll know again.'},
-  tellglasses:{s:'Read faces',n:'Tell Glasses',ic:'contacts',tb:['bj','holdem'],$:5,heat:1,d:'Blackjack: read the hole card as high, low or middle. Hold\'em: a real tell glints, an act says so.',q:'Tinted just right to read the dealer\'s face when he peeks.'},
+  tellglasses:{s:'Read faces',n:'Tell Glasses',ic:'contacts',tb:['bj','holdem'],$:5,heat:1,d:'Blackjack: read the hole card as high, low or middle. Hold\'em: real tells glint, acts say so.',q:'Tinted just right to read the dealer\'s face when he peeks.'},
   horseshoe:{s:'Ties count as wins',n:'Lucky Horseshoe',ic:'silver',tb:['bj'],$:6,heat:0,d:'A push counts as a win.',q:'Nailed inside your boot heel. Clicks when you walk.'},
   weightshoe:{s:'Dealer: no Ace up',n:'Weighted Shoe',ic:'dshoe',tb:['bj'],$:5,heat:1,d:'The dealer\'s face-up card is never an Ace.',q:'The dealing shoe has a little lead in the back. The Aces sink.'},
   sortkit:{s:'See next card',n:'Edge-Sorting Kit',ic:'scout',tb:['bacc'],$:9,heat:3,d:'Always see the next card. Naturals pay ×1.4.',q:'"Could you turn that card around? For luck."'},
@@ -14443,7 +14534,7 @@ Object.assign(CREW,{
   hypeman:{n:'Sonny Vale',r:'the Hype Man',rar:1,$:5,tb:['any'],d:me=>`+${rkInt(2,crk(me))} Nerve once a casino, as you walk in.`,
     a:{g:'m',hair:'pomp',hc:'#1b120c',out:'open',oc:'#e05a9a',acc:['chain'],eyes:'wink',mouth:'grin'},
     q:'Calls everybody champ. Means it about half the time.'},
-  ruthie:{n:'Railbird Ruthie',r:'the Regular',rar:1,$:4,tb:['any'],starter:1,d:me=>`+${rkInt(1,crk(me))} Nerve every time you win at a High bet.`,
+  ruthie:{n:'Railbird Ruthie',r:'the Railbird',rar:1,$:4,tb:['any'],starter:1,d:me=>`+${rkInt(1,crk(me))} Nerve every time you win at a High bet.`,
     a:{g:'f',hair:'curly',hc:'#ececf2',gl:'round',out:'tee',oc:'#2a6a8a',acc:['earrings'],mouth:'o'},
     q:'Never plays a hand. Hasn\'t missed one since 1974.'}
 });
@@ -14838,6 +14929,7 @@ function crewDesc0(c){const d=CREW[c.id],dd=d.d0!=null?d.d0:d.d;let t;try{t=type
   if(crewScores(d)){const [t2,n]=rkScoreText(t,r);t=t2;if(!n){if(/chance of ¤\d+/.test(t))t=t.replace(/chance of ¤(\d+)/,(m,a)=>`chance of ¤${Math.round(a*RK_CASH[r])}`);else if(!d.retrig)notes.push(`${stars(r)}: bonuses ×${RK_BON[r]}`);}}
   if(d.copy)notes.push(`Copies at ${stars(r)} or better`);
   if(RK_COUNTS_C.includes(c.id))t=rkCountText(t,r)[0];
+  if(c.id=='auditor')t=t.replace(/\+¤([\d.]+) for each Nerve/,(m,a)=>`+¤${+(a*RK_CASH[r]).toFixed(2)} for each Nerve`);
   if(c.id=='bartender')t=t.replace(/\+¤(\d+) per Big Game/,(m,a)=>`+¤${Math.round(a/3*RK_CASH[r])*3} per Big Game`);
   if(d.retrig&&r>=4)notes.push('★★★★: counts one more time');
   if(c.id=='mime'&&r>=4)notes.push('★★★★: three times');
@@ -15382,6 +15474,7 @@ function pocketWhy(c){if(consBlocked(c))return null;const id=c.id,t=R.t,heat=S.h
     const pt=pTot(b.p),d0=b.d[0],dv=d0?(d0.r==14?11:cv(d0.r)):0,stiff=pt>=12&&pt<=16&&dv>=7;
     if(id=='mirror')return stiff&&!BJ.seeNext()?H('See the next card before you hit'):null;
     if(id=='shiner')return stiff&&!b.holeSeen?H('See the dealer\'s hole card'):null;
+    if(id=='acehole')return pt<21&&b.p.some((c,i)=>{const cs=b.p.slice();cs[i]={r:14,s:c.s};return pTot(cs)==21;})?H('Tap a card: it becomes an Ace'):null;
     if(id=='skip'){const nc=BJ.seeNext()&&b.shoe[b.shoe.length-1];return nc&&nc.r!=14&&pt<21&&pt+cv(nc.r)>21?H('Burn the card that would bust you'):null;}
     return null;}
   if(t=='poker'){const p=R.pk;if(!p||!p.hand||p.hand.length<5)return null;const e=bestFive(p.hand),weak=e.h=='hc'||e.h=='pr';
@@ -17787,7 +17880,7 @@ SL.grab=e=>{if(e.button!=null&&e.button!==0)return;const lv=e.currentTarget||$('
 setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{LV,LV_SPIN});});
 
 // ===== 33-craps.js
-const CR_Q=.75,CR_HOLD_K=.015,CR_SLIDE_HOLD=.139;
+const CR_Q=.75;
 /* ================= CRAPS: set your dice, throw them, chips on the layout =================
  Litty's overhaul: real 3D dice, a real layout you bet on like roulette, and dice control.
  - Bets (regular tables): Pass Line, Free Odds behind it, Place 4-10, Field, Any 7, Yo 11, the Hardways. Each chip is your
@@ -17906,11 +17999,9 @@ const CR={
     if(!crBig())S.chips+=back;sfx('chips');CR.render();renderActions();renderSide();},
   /* ---------- setting and throwing ---------- */
   turnSet(i){const c=R.cr;if(busy||c.aim||CTM.lock)return;c.set[i]=(c.set[i]+1)%6;sfx('card');CR.render();},
-  // how often each die stays on its set face: the throw (0-1), plus the Dice Slider.
-  // (QA 2026-10-07: every throw is CR_Q now, and .12×CR_Q held 9% of dice on the default 3-3 set, so a plain Hard 6
-  // returned 1.85 instead of 0.91 with no perks (192 wins in 1,028 decisions). CR_HOLD_K keeps the layout fair;
-  // the Dice Slider still brings a die to the same 15% as before)
-  holdChance(q=CR_Q){return Math.min(.6,CR_HOLD_K*Math.max(0,Math.min(1,q))+(rigOn('slider')?CR_SLIDE_HOLD:0));},
+  // how often a die stays on its set face on an unplanned roll (a miss, the quick throw, the bots): never.
+  // (Litty 2026-10-21: a miss is a plain random roll; the Dice Slider widens the throw meter's gold instead, 33c-crthrow.js)
+  holdChance(){return 0;},
   // the skill throw (33c-crthrow.js) asks this. Is a roll allowed right now? (the same rules the
   // old Throw button had: chips down or a come-out, and at the Big Game only on your shoot, once the boss has set a score)
   canRoll(){const c=R&&R.cr;if(!c||busy||c.pending||c.post)return false;if(crBig())return CR.mine()&&R.plays>0;return c.bets.length>0||c.phase=='come';},
@@ -18106,9 +18197,11 @@ Object.assign(CR,{
    accuracy (it swings back, the START line is 100%, gold). Miss the edge: it bounces back, a press then is Late unless
    the cursor's back in the green or the gold (graded by the drawn zones both ways, 2026-10-17). The gold, the green and
    the cursor are crisp, no glow: the cursor's centre line inside the drawn gold is Perfect (css/zzzzzzzzzzexact.css).
- - What lands: Perfect + Perfect = your set exactly. Green or better on both = each die on your set half the time, else a
-   random face (Litty 2026-10-18; it was a quarter turn off, which threw more 7s). A miss on either = a random roll. Loads
-   weight the random face. The Dice Slider adds its 15% hold on Good, Quick and missed throws (Litty 2026-10-18).
+ - What lands (Litty 2026-10-21): Perfect + Perfect = your set exactly. Any other Good (green or better on both, one gold
+   + one green included) = one die (a coin flip which) on its set face, the other on a side face of its set (one of the
+   four faces around it on the die, never the set face, never the one under it). A miss on either = a plain random roll,
+   no hold. Loads weight the random face and which side face. The Dice Slider makes both golds 20% wider and both greens
+   10% wider (drawn = judged); it no longer holds a die.
  - Quick throw (the button): a plain random roll, no meter. Bots and SPEED<.05: the same.
  - Nerve: +1 for a Perfect throw, +1 for a made point (both at the Big Game too).
  - Crooked dice (loaded/shaved in hand): a suspicion counter, per sitting. Perfect +7, Green +3, any miss or random roll -3
@@ -18124,8 +18217,11 @@ const CTM={S:.86,E:0,SPD:.9*.75*1.1,
   // (Litty 2026-10-18: "make the gold zone 25% smaller" (craps), then "gold section 10% smaller" twice: 1.2 x .75 x .9 x .9)
   GK:.729,
   fx(){const s=CTM.st;if(s&&s.ek!=null)return {ek:s.ek,sv:s.sv||1};return typeof mfxNow=='function'?mfxNow():{ek:1,sv:1};},
-  pPerf(){return .02142*CTM.GK*CTM.mul()*CTM.fx().ek;},aPerf(){return .00918*CTM.GK*CTM.mul()*CTM.fx().ek;},
-  pGreen(){return Math.max(.02142*2.2*CTM.mul(),CTM.pPerf()*1.25);},aGreen(){return Math.max(.00918*2*2.5*CTM.mul(),CTM.aPerf()*2*1.25);},
+  // (Litty 2026-10-21: the Dice Slider, "not too much bigger": both golds x1.2, both greens x1.1. Taken at the throw's start)
+  SLG:1.2,SLR:1.1,
+  sl(){const s=CTM.st;if(s&&s.sl!=null)return s.sl;return typeof rigOn=='function'&&rigOn('slider')?1:0;},
+  pPerf(){return .02142*CTM.GK*CTM.mul()*CTM.fx().ek*(CTM.sl()?CTM.SLG:1);},aPerf(){return .00918*CTM.GK*CTM.mul()*CTM.fx().ek*(CTM.sl()?CTM.SLG:1);},
+  pGreen(){return Math.max(.02142*2.2*CTM.mul()*(CTM.sl()?CTM.SLR:1),CTM.pPerf()*1.25);},aGreen(){return Math.max(.00918*2*2.5*CTM.mul()*(CTM.sl()?CTM.SLR:1),CTM.aPerf()*2*1.25);},
   powPct(p){return Math.round(Math.min(p,1)*100);},
   powGrade(p){const s=CTM.st;return s.powMiss?'x':p>=1-CTM.pPerf()?'p':p>=1-CTM.pGreen()?'g':'x';},
   accPct(x){return Math.max(0,Math.round(100-Math.abs(x-CTM.S)*100/.14));},
@@ -18158,7 +18254,7 @@ const CTM={S:.86,E:0,SPD:.9*.75*1.1,
     if(s.phase=='acc'){s.acc=s.ax;CTM.pop('acc');CTM.finish();return true;}
     if(!CTM.here()||!CR.canRoll())return false;
     if(SPEED<.05)return CR.roll(),true;
-    {const f=typeof mfxNow=='function'?mfxNow():{ek:1,sv:1};CTM.st={phase:'pow',pos:0,back:0,pow:null,powX:null,ax:null,acc:null,pops:{},powMiss:0,t0:0,ek:f.ek||1,sv:f.sv||1};}sfx('card');CTM.paint();
+    {const f=typeof mfxNow=='function'?mfxNow():{ek:1,sv:1};CTM.st={phase:'pow',pos:0,back:0,pow:null,powX:null,ax:null,acc:null,pops:{},powMiss:0,t0:0,ek:f.ek||1,sv:f.sv||1,sl:typeof rigOn=='function'&&rigOn('slider')?1:0};}sfx('card');CTM.paint();
     cancelAnimationFrame(CTM.raf);CTM.raf=requestAnimationFrame(CTM.loop);return true;},
   loop(ts){const s=CTM.st;if(!CTM.live())return;if(!R||!R.cr||R.t!='craps'){CTM.reset();return;}
     const dt=Math.min(.25,(ts-(s.t0||ts))/1000);s.t0=ts;CTM.step(dt);if(!CTM.live())return;CTM.paint();CTM.raf=requestAnimationFrame(CTM.loop);},
@@ -18170,7 +18266,7 @@ const CTM={S:.86,E:0,SPD:.9*.75*1.1,
   pop(k){const s=CTM.st,v=k=='pow'?CTM.powPct(s.pow):CTM.accPct(s.acc),g=k=='pow'?CTM.powGrade(s.pow):CTM.accGrade(s.acc);
     const late=k=='pow'&&s.back&&g=='x';s.pops[k]={v:g=='p'?100:Math.min(v,99),g,t:late?(s.pow?'Late':'No power'):{p:'Perfect',g:'Good',x:'Missed'}[g]};
     if(late&&s.pow)dealerSay("Dice don't wait, friend.");},
-  // what lands: 'p' your set, 'g' each die your set half the time (else random), 'x' random
+  // what lands: 'p' your set, 'g' one die your set and the other a side face of its set, 'x' random
   kind(){const P=CTM.st.pops||{},gp=P.pow?P.pow.g:'x',ga=P.acc?P.acc.g:'x';return gp=='p'&&ga=='p'?'p':gp!='x'&&ga!='x'?'g':'x';},
   finish(){const s=CTM.st;cancelAnimationFrame(CTM.raf);s.phase='fly';s.tf=performance.now();CTM.later(s);const k=CTM.kind();CTM.paint();
     if(typeof mfxSpend=='function'&&!(R&&R.cr&&R.cr.free))try{mfxSpend('craps');}catch(e){console.error(e);}
@@ -18199,31 +18295,36 @@ const CTM={S:.86,E:0,SPD:.9*.75*1.1,
   // the bar redraws every frame; the readouts only when they change (so their pop plays once)
   paint(){const el=$('#crMeter');if(!el)return;let lv=el.querySelector('.ctlive'),pp=el.querySelector('.ctpops');if(!lv||!pp){el.innerHTML='<div class="ctpops"></div><div class="ctlive"></div>';lv=el.lastChild;pp=el.firstChild;}
     lv.innerHTML=CTM.html();if(pp.dataset.k!==CTM.popsHTML){pp.dataset.k=CTM.popsHTML;pp.innerHTML=CTM.popsHTML;}}};
-// the side faces of face index fi (opposite faces sum to 5 by index), weighted by loads
-function crSideFace(d,fi){const L=[0,1,2,3,4,5].filter(j=>j!=fi&&j!=5-fi),w=L.map(j=>d.faces[j].load||1);let t=w.reduce((a,b)=>a+b,0),r=Math.random()*t;for(let k=0;k<L.length;k++){r-=w[k];if(r<=0)return L[k];}return L[L.length-1];}
+// the side faces of face index fi (opposite faces sum to 5 by index), weighted by loads. On a misspotted die (Tops 1-3-5)
+// a side showing the set's own number is skipped when another side shows something else; if none does, any side
+function crSideFace(d,fi){let L=[0,1,2,3,4,5].filter(j=>j!=fi&&j!=5-fi);const D=L.filter(j=>d.faces[j].v!=d.faces[fi].v);if(D.length)L=D;const w=L.map(j=>d.faces[j].load||1);let t=w.reduce((a,b)=>a+b,0),r=Math.random()*t;for(let k=0;k<L.length;k++){r-=w[k];if(r<=0)return L[k];}return L[L.length-1];}
 /* ---------- the hooks into 33-craps.js ---------- */
 {const r0=CR.roll;
   CR.roll=async function(tv,q,th){const c=R&&R.cr;if(!c||busy||c.pending||c.post)return;const plan=c.plan;c.plan=null;
     if(c.free)return CTM.freeRoll(plan||{kind:'q'});   // (Bambi's first-time demo: a practice roll, 99zy-crdemo.js)
     if(!plan){const out=r0.call(this,tv,q,th);CTM.after('q',null);return out;}
-    if(plan.kind=='x'||plan.kind=='q'){const H=CR.holdChance,sh=CTM.slideHold();CR.holdChance=()=>sh;let out;try{out=r0.call(this,tv,q==null?CR_Q:q,th||plan.th);}finally{CR.holdChance=H;}CTM.after(plan.kind,plan);return out;}
+    if(plan.kind=='x'||plan.kind=='q'){const H=CR.holdChance;CR.holdChance=()=>0;let out;try{out=r0.call(this,tv,q==null?CR_Q:q,th||plan.th);}finally{CR.holdChance=H;}CTM.after(plan.kind,plan);return out;}
     // a Perfect or Green throw: the faces are decided here; the rest of the roll runs as usual
     // (Litty 2026-10-18: the Slider's die still slides on a planned throw; a no-7 reroll (Tapper, Electric Dice) throws again for real)
-    const ds=CR.dice(),fis=ds.map((d,i)=>CTM.slid(d,i)??(plan.kind=='p'?c.set[i]:CTM.goodFace(d,c.set[i])));
+    const ds=CR.dice(),fis=CTM.faces(ds,plan.kind,c.set);
     const T=CR.throwOne,H=CR.holdChance,used=[0,0];CR.throwOne=function(d,i){if(!used[i]){used[i]=1;return CR.faceOf(d,fis[i]);}return T.call(this,d,i);};CR.holdChance=()=>0;
     const tap=c.tapper;if(plan.kind=='p')c.tapper=0;   // (the set is the set: a Tapper roll would reroll a Perfect 7)
     // (Tops and bottoms, 33-craps.js crTopsFix: a die that landed its set face, or the Slider's, is the one kept)
     if(c.tops)c.topsKeep=ds.map((d,i)=>CTM.slid(d,i)!=null?2:fis[i]===c.set[i]?1:0);
     let out;try{out=r0.call(this,tv,q==null?CR_Q:q,th||plan.th);}finally{CR.throwOne=T;CR.holdChance=H;c.tapper=tap;}
     CTM.after(plan.kind,plan);return out;};}
-// (Litty 2026-10-18) a Good die: your set half the time, else a random face; the Dice Slider's hold on top (.5 -> .575)
-CTM.GOOD=.5;CTM.slideHold=()=>rigOn('slider')?CR.holdChance(CR_Q):0;
-CTM.goodFace=(d,fi)=>Math.random()<1-(1-CTM.GOOD)*(1-CTM.slideHold())?fi:rollFace(d);
+// (Litty 2026-10-21) a Good throw: one die (a coin flip which) on its set face, the other on a side face of its set.
+// Never both. A die the Slider shot moves (c.slide) is fixed; a Good die left alone is the coin flip on its own
+CTM.goodFaces=(ds,set,fixed)=>{fixed=fixed||[null,null];const ex=Math.random()<.5?0:1;
+  return ds.map((d,i)=>fixed[i]!=null?fixed[i]:i===ex?set[i]:crSideFace(d,set[i]));};
+// the face index each die lands on for a planned throw: 'p' the set, 'g' as above, else a random face
+CTM.faces=(ds,k,set)=>{const fx=ds.map((d,i)=>CTM.slid(d,i));
+  return k=='p'?ds.map((d,i)=>fx[i]??set[i]):k=='g'?CTM.goodFaces(ds,set,fx):ds.map((d,i)=>fx[i]??rollFace(d));};
 CTM.slid=(d,i)=>{const c=R.cr;if(!c.slide||c.slide.die!==i)return null;const j=d.faces.findIndex(f=>f.v==c.slide.v);return j>=0?j:null;};
 // a practice roll (Bambi's first-time demo, 99zy-crdemo.js): the meter and the dice as usual, nothing at stake.
 // No bet, no settle, no Nerve, no Heat, no roll counted, no stickman
 CTM.freeRoll=async function(plan){const c=R&&R.cr;if(!c||busy)return null;busy=true;const ds=CR.dice(),k=plan.kind;
-  const f=ds.map((d,i)=>CR.faceOf(d,k=='p'?c.set[i]:k=='g'?CTM.goodFace(d,c.set[i]):rollFace(d)));
+  const f=(k=='p'||k=='g'?(k=='p'?c.set.slice():CTM.goodFaces(ds,c.set)):ds.map(d=>rollFace(d))).map((fi,i)=>CR.faceOf(ds[i],fi));
   let land=null;try{land=await CRT.throwDice(f,c.land,plan.th);}catch(e){land=CRT.quickLand(f.length);}
   busy=false;if(!R||R.cr!==c)return null;c.landAt=performance.now();c.land=land;c.last=f;c.sumPop=1;if(CTM.st.phase=='fly')CTM.st.phase='done';render();
   return {kind:k,f,tot:f[0].v+f[1].v};};
@@ -23978,7 +24079,9 @@ function startShift(t,resume){if(busy)return;const isBoss=!!SHIFTS[S.shift].boss
     // a table's own welcome, after the how-to and any gift (none today: the races' free Electro Shock went, 2026-10-19)
     if(R&&R.t==t&&TBL[t].welcome)await TBL[t].welcome();})().catch(e=>{if(held&&R===rH)busy=false;throw e;}).finally(()=>{if(rH.dealHold){rH.dealHold=0;if(R===rH)render();}});}
 function markShift(){if(R&&S.phase=='play'){if(R.session)return saveSession();R.markPlays=R.plays;S.inShift={t:R.t,plays:R.plays,disc:R.disc,take:R.take,done:R.playsDone,ser:R.ser?serSave():null,pk:R.pk?{hand:R.pk.hand.map(c=>c.id),draw:R.pk.draw.map(c=>c.id)}:null};saveRun();}}
-async function afterPlay(){if(S.dead||!R)return;practiceTick();tickCharges();
+// the Grinder: a play that scored a win keeps his run going, any other play starts him over (04-data-crew.js)
+function grindTick(){if(!S)return;for(const c of S.crew)if(c.id=='grinder'&&c.v){if(c.v.w)c.v.w=0;else c.v.n=0;}}
+async function afterPlay(){if(S.dead||!R)return;grindTick();practiceTick();tickCharges();
   if(crewOn('bentdealer')&&!R.onHouse){R.onHouse=1;R.plays++;toast('Murray: "That one was on the house."');renderSide();}
   if(bossOn('fed')){R.fedN=(R.fedN||0)+1;if(R.fedN%5==0)await addHeat(1,"Agent Fedderman's rule (every 5th play)",1);}if(S.dead||!R)return;
     if(R.session)return sessionAfterPlay();
@@ -23999,7 +24102,7 @@ async function shiftWon(){if(S.practice){busy=false;return practiceEnd(R&&R.ser?
   if(!R){busy=false;return;}if(R.pk)PK.shiftEnd();
   const lines=[[R.ser||R.isBoss?'The purse':'Big Game payout',R.ser||R.isBoss?serPurse():5+Math.min(S.casino,5)]];if(R.ser){const sp=serSpare(R.ser);if(sp)lines.push([`${sp} game${sp>1?'s':''} you didn't need`,sp*SER_SPARE]);}else if(R.plays>0)lines.push([`${R.plays} unused ${TABLES[R.t].p.toLowerCase()}`,R.plays]);
   const intr=Math.min(interestCap(),Math.floor(Math.max(0,bankroll())/usd(5)))*3;if(intr)lines.push([`Interest`,intr]);
-  for(const c of activeCrew()){const d=CREW[c.id];if(d.end){const v=Math.round(d.end(c)*RK_CASH[crk(c)]);if(v)lines.push([`${d.n}, ${crk(c)>1?stars(crk(c))+' '+rankTitle(c.id,crk(c)):d.r}`,v*3]);}}
+  for(const c of activeCrew()){const d=CREW[c.id];if(d.end){const e=d.end(c)*RK_CASH[crk(c)],v=d.endExact?e:Math.round(e);if(v)lines.push([`${d.n}, ${crk(c)>1?stars(crk(c))+' '+rankTitle(c.id,crk(c)):d.r}`,v*3]);}}
   let costs=0;if(R.crash.rush)costs+=4;if(R.crash.jackpot)costs+=5;
   const total=lines.reduce((a,l)=>a+l[1],0)-costs;
   // (Litty 2026-10-14: the lines count in old cash; they pay in dollars at this casino, usd)
@@ -30402,7 +30505,7 @@ const NOTE={  // one-use items whose effect is a chance, not a payout (figures f
   shiner:['bj','10 hands seeing the hole card: about +10% on each, roughly one extra bet in all.'],mirror:['bj','3 hands seeing the next card: about +10% on each.'],tipjar:['bj','The next dealer hand busts: that hand wins unless you bust first (≈ 42% → 85%).'],
   camera:['any','You see the next 5 cards: draw toward hands, or count who gets what.'],mucker:['poker','2 extra cards now: roughly +1 hand rank on this play.'],
   cooler:['poker','Your next hand is a Full House, from your own deck\'s best ranks (Hold\'em: on the flop).'],
-  stacked:['poker','Tap a card: your next 3 cards are its suit. A Flush becomes likely (≈ 14% → 55%).'],misdeal:['poker','Throw a bad hand back for a fresh one, free.'],acehole:['poker','A spare Ace in your hand at this table.'],
+  stacked:['poker','Tap a card: your next 3 cards are its suit. A Flush becomes likely (≈ 14% → 55%).'],misdeal:['poker','Throw a bad hand back for a fresh one, free.'],acehole:['any','Pick Five: a spare Ace in your hand. Blackjack: one card becomes an Ace.'],
   monkeypaw:['slots','10 spins where every win pays ×1.4.'],wand:['slots','5 spins where Sevens and Diamonds next to the line slide onto it.'],
   samethrow:['craps','Repeats your last roll: just rolled your point? Roll it again.'],
   tapper:['craps','3 rolls with no seven: each one dodges the 16.7% seven-out risk.'],slidershot:['craps','Pick one die’s face: you choose half the roll.'],
@@ -30666,6 +30769,7 @@ async function sitDelta(t,mutate,o,rep,K){const S0=S,R0=R;const mul=o.boost||1;c
       R.streak=0;R.won={};R.sessPlays=0;R.bjN=0;
       for(let i=0;i<SIT_PLAYS;i++){R.sessPlays=i;R.playsDone=Math.max(1,i);
         let u=fl.sitflat?rr():(lane[i][s]+rr())/N;const uv=rr(),ua=rr();let hit=null;for(const x of outs){if(u<x[0]){hit=x;break;}u-=x[0];}
+        grindTick();   // the play before ends: the Grinder keeps a win going, a miss starts him over (50-flow.js)
         if(!hit)continue;   // a loss or a push: nothing scores, the streak stands
         const [,k,vm]=hit,kv=K[k];const v=kv[2]&&ua<1/13?2:uv<.5?0:1;
         const ex=oddsExample(t,k,v,o.cardMod,1);if(!ex)continue;
@@ -31991,7 +32095,7 @@ const WORTH_C={
   sweetheart:()=>crewOn('sweetheart')||typeof WT_PRICE=='undefined'?'':`Starla's rounds at half price (${um(Math.max(1,Math.ceil(WT_PRICE[0]*WT_SUE_K)))}, not ${um(WT_PRICE[0])}), plus a fourth`,
   loanshark:r=>`Spend down to −${um(rkInt(25,r))}: buy now, pay later`,
   bartender:r=>`+${um(Math.round(bigCash('bartender')/3*RK_CASH[r])*3)} every Big Game you beat`,
-  auditor:()=>`Big Game won, no ${xMoves(2)} used: +${um(6)} for each left`,
+  auditor:r=>`Big Game won: +${um(AUDITOR_U*RK_CASH[r])} for each Nerve you have left`,
   bookkeeper:()=>`Up to +${um(3*3)} more interest every Big Game you beat`,
   fence:()=>`+${um(1)} for every face card you discard at Pick Five Poker`,
   cardshark:()=>`Every face card that counts: ${P_(1,3)} chance of +${um(5)}`,
@@ -32048,7 +32152,7 @@ const WORTH_S_C={
   sweetheart:()=>'Half-price drinks, one more',
   loanshark:r=>`Buy on credit to ${mshort(usd(rkInt(25,r)))}`,
   bartender:r=>`+${mshort(usd(bigWin('bartender',r)))} per Big Game`,
-  auditor:()=>`+${mshort(usd(6))} a move left`,
+  auditor:r=>`+${mshort(usd(AUDITOR_U*RK_CASH[r]))} a Nerve left`,
   bookkeeper:()=>`Up to +${mshort(usd(3*3))} interest`,
   fence:()=>`+${mshort(usd(1))} a tossed face`,
   cardshark:()=>`${P_(1,3)}: +${mshort(usd(5))} a face`,
@@ -33190,7 +33294,7 @@ const RULES={
     bets:()=>rxTbl(['Bet','Wins when','Pays'],[['Pass Line','7 or 11 on the come-out, then the point before a 7','1 to 1'],['Free Odds','Behind your Pass Line once a point is set: the point before a 7','4 or 10: 2 to 1<br>5 or 9: 3 to 2<br>6 or 8: 6 to 5'],['Place a number','4, 5, 6, 8, 9 or 10 before a 7 (works while a point is on)','4 or 10: 9 to 5<br>5 or 9: 7 to 5<br>6 or 8: 7 to 6'],['Field','Next roll is 2, 3, 4, 9, 10, 11 or 12','1 to 1 · 2 pays double · 12 triple'],['Any 7','Next roll is 7','4 to 1'],['Yo 11','Next roll is 11','15 to 1'],['Hard 4 · Hard 10','2-2 or 5-5 before a 7 or the "easy" way','7 to 1'],['Hard 6 · Hard 8','3-3 or 4-4 before a 7 or the easy way','9 to 1']])+'<p class="rnote">Pick up your bets takes your chips back, except the Pass Line and its Free Odds once a point is on.</p>',
     odds:()=>rxTbl(['Bet','Chance','House edge'],[['Pass Line','49.3%','1.41%'],['Free Odds','33% · 40% · 45%','0%'],['Place 6 or 8','45.5%','1.52%'],['Place 5 or 9','40%','4.00%'],['Place 4 or 10','33.3%','6.67%'],['Field (12 triple)','44.4%','2.78%'],['Any 7','16.7%','16.67%'],['Yo 11','5.6%','11.11%'],['Hard 6 or 8','9.1%','9.09%'],['Hard 4 or 10','11.1%','11.11%']])+'<p class="rnote">Two fair dice. 7 is the most common roll: 6 ways in 36. Where the 12 pays only double, the Field edge is 5.56%.</p>',
     tips:['<b>Pass Line plus Free Odds</b> is the best bet in the house: Free Odds have no house edge.','If you place numbers, place the 6 and 8, not the 4 and 10.','Skip the props (Any 7, Yo, Hardways): big payouts, bigger edges.','Never say "seven" out loud at a real craps table.','<b>Cheat:</b> dice landed on a winner? <b>Past-post</b> a chip onto it.'],
-    ours:['You can put one Free Odds chip behind each Pass Line chip. Vegas usually lets you put 3, 4 or 5 times your Pass Line bet in Free Odds.','Hardways work on the come-out here. In Vegas they\'re usually off unless you call them on.','<b>More bets</b> opens the Field, the numbers and the long shots. Each one says when it wins.','<b>Set your dice:</b> tap a die in Your dice to turn the face you want on top. Sometimes it stays there. Real "dice control" is hotly argued about.','<b>Rerolls:</b> after a roll that costs your Pass Line, throw one die again.','<b>Your dice case:</b> special dice from Ike in the crafting rooms and the Fixer\'s Dice Box. Switch for free on a new shooter, or switch one in mid-shooter (a Dice switch).','No Don\'t Pass or Come bets here.']},
+    ours:['You can put one Free Odds chip behind each Pass Line chip. Vegas usually lets you put 3, 4 or 5 times your Pass Line bet in Free Odds.','Hardways work on the come-out here. In Vegas they\'re usually off unless you call them on.','<b>More bets</b> opens the Field, the numbers and the long shots. Each one says when it wins.','<b>Set your dice:</b> tap a die in Your dice to turn the face you want on top. Perfect lands it. Good: one die slips a side. Real "dice control" is hotly argued about.','<b>Rerolls:</b> after a roll that costs your Pass Line, throw one die again.','<b>Your dice case:</b> special dice from Ike in the crafting rooms and the Fixer\'s Dice Box. Switch for free on a new shooter, or switch one in mid-shooter (a Dice switch).','No Don\'t Pass or Come bets here.']},
   roulette:{
     how:['Tap a number, or Red, Black, Odd, Even, to put a chip there.','Press <b>Spin</b>. If the ball lands on a number your chip covers, that chip wins.','One number pays 35 to 1. Bets that cover more numbers win more often but pay less.'],
     // (Litty 2026-10-18: the Count's Big Game wheel has 39 pockets, roTriple)
@@ -38661,6 +38765,10 @@ SWT.bj={
     if(!ni.seen&&swItem('mirror'))opts.push(swItemOpt('mirror','Mirror',nextAvg()));
     if(!R0.fix&&swItem('tipjar'))opts.push(swItemOpt('tipjar','Fifty for the Dealer',bjSolve(Object.assign({},base,{rules:Object.assign({},R0,{fix:true})})).w));
     if(ni.seen&&swItem('skip'))opts.push(swItemOpt('skip','Skip',bjSolve(Object.assign({},base,{kn:[]})).w));
+    // Ace in the Hole (99zzl-acehole.js): one of your cards an Ace, the best one; two cards to 21 is a blackjack
+    if(swItem('acehole')){let best=-1;for(let i=0;i<b.p.length;i++){const cs=b.p.slice();cs[i]={r:14,s:cs[i].s,house:1};const me2=bjHand(cs);
+        const x=cs.length==2&&!b.split&&bjTo(me2)==21?1:bjSolve(Object.assign({},base,{me:me2})).w;if(x>best)best=x;}
+      if(best>=0)opts.push(swItemOpt('acehole','Ace in the Hole',best));}
     return {p:r.w,push:r.p,opts,lines:lines.concat([`Push ${swPct(r.p)}, lose ${swPct(r.l)}.`]),lab:'Win'};}};
 
 /* ================= CRAPS: the Pass Line from where the dice are now (and every other bet on the layout) ================= */
@@ -38728,8 +38836,8 @@ SWT.craps={
   *calc(){const c=R.cr,big=crBig(),lines=[];
     if(big&&!CR.mine())return {p:null,msg:"Round over. Your next shoot is coming.",lines:[],lab:'Shoot'};
     const ds=CR.dice();if(ds.length<2||!ds[0]||!ds[1])return {p:null,msg:'Two dice in hand first.',lines:[]};
-    // (Litty 2026-10-18: a thrown die holds your set only with the Dice Slider, as CTM.slideHold in 33c)
-    const h=typeof CTM!='undefined'&&CTM.slideHold?CTM.slideHold():CR.holdChance(CR_Q),set=c.set||[2,2];
+    // (Litty 2026-10-21: the watch can't read your throw, so it prices a plain random roll, a miss: no die holds its set)
+    const h=CR.holdChance(),set=c.set||[2,2];
     const X={dice:[crDieOf(ds[0],set[0],h),crDieOf(ds[1],set[1],h)],plain:[crHouseDie(h),crHouseDie(h)],
       T:c.tapper&&S.chg?S.chg.tapper||0:0,sv:c.slide?c.slide.v:null,rep:c.repeat&&c.lastFi?ds.map((d,i)=>d.faces[c.lastFi[i]].v):null,big,boxcar:crewOn('boxcar'),electric:rigOn('electric')};
     const crooked=CR.crooked();
@@ -38766,7 +38874,7 @@ SWT.craps={
     if(X.T)lines.push(`Mercury Tapper: no 7 for ${X.T} more roll${X.T>1?'s':''}.`);if(X.electric&&st0.e)lines.push('Electric Dice: no 7 this roll.');
     if(X.sv!=null)lines.push(`Slider: the left die lands on ${X.sv}.`);if(X.rep)lines.push(`The Same Throw: ${X.rep.join(' and ')} again.`);
     if(st0.g)lines.push('Gloria takes back this shooter\'s first seven-out.');if(st0.s)lines.push('No roll: your next bad roll is thrown again.');if(X.boxcar)lines.push('Betty: 2 and 12 win on the come-out.');
-    lines.push(`Your set faces hold ${Math.round(h*100)}% of the time on an average throw.`);
+    lines.push('Priced as a random throw. Perfect lands your set.');
     // the rest of the layout
     const D0=X.dice;
     for(const b of c.bets){if(b.k=='pass')continue;let p=null;
@@ -41336,7 +41444,9 @@ function frEnd(why){const was=!!FR.run;FR.endWhy=why;if(why=='skip')FR.skip=true
   if(!S.practice)saveRun();}
 function frPocketBack(){const f=S&&S.flags;if(!f||!f.frPocket)return;S.cons=S.cons.concat(f.frPocket.slice(0,Math.max(0,consSlots()-S.cons.length)));delete f.frPocket;renderRows();}
 // Skip, always in the corner
-function frSkipBtn(on){let b=document.getElementById('frSkip');if(!on){if(b)b.remove();return;}if(b)return;
+// (off: only its own; the alley tour's, the walk-over's and the craps demo's Skip carry a data- mark and stay. 2026-10-21:
+// the tutorial's end took the alley tour's Skip with it, and a phone was left with none)
+function frSkipBtn(on){let b=document.getElementById('frSkip');if(!on){if(b&&!b.dataset.alley&&!b.dataset.walk&&!b.dataset.cd)b.remove();return;}if(b)return;
   b=document.createElement('button');b.id='frSkip';b.className='btn sm';b.type='button';b.innerHTML='Skip<span class="s">the tutorial</span>';b.title='Skip the tutorial';
   b.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();sfx('card');frEnd('skip');});document.body.appendChild(b);}
 
@@ -41706,9 +41816,16 @@ function frAlley(){if(!S||S.practice||S.phase!='shop'||SPEED<.05||DRY)return;con
  (Skip ends the tutorial before the Big Game: no limit, any run.) */
 function frLimit(){return !!(S&&S.flags&&S.flags.frLimit&&!S.practice&&S.casino==0&&!(S.flags.beat&&S.flags.beat[0]));}
 // her line with an OK (a tap on her, or her top card on a phone), outside the script
-function frSayOk(key){return new Promise(res=>{if(!S||DRY||SPEED<.05)return res();let done=false;
-  const go=()=>{if(done)return;done=true;FR.tap=null;FR.post=0;document.body.classList.remove('frpost');frTapHint();if(UI.bambiK===k&&UI.bambi){UI.bambi=null;if(S)renderInfo();}if(typeof bsDrop=='function')bsDrop();res();};
-  document.body.classList.add('frpost');FR.lineKey=key;bambiLine(FR_LINES[key],1e9,'bambi',{hold:1});const k=UI.bambiK;FR.tap=go;FR.post=1;frTapHint();});}
+// (2026-10-21, a phone stuck on the alley tour: another line took her bar, timed out, and left this one waiting with
+// nothing on screen. While it waits, her line stays: put back once the bar is free, her OK put back once no other
+// script holds it. FR.sayOk: how often, for tools/tphonetour.js)
+function frSayOk(key){return new Promise(res=>{if(!S||DRY||SPEED<.05)return res();let done=false,k=0,keep=0;
+  const back=()=>{if(done){clearInterval(keep);return;}if(!S||S.dead)return go();
+    if(!FR.tap){FR.tap=go;FR.post=1;document.body.classList.add('frpost');frTapHint();FR.sayOk.tap++;}
+    if(FR.tap===go&&!UI.bambi&&$('#ov').hidden){bambiLine(FR_LINES[key],1e9,'bambi',{hold:1});k=UI.bambiK;frTapHint();FR.sayOk.line++;}};
+  const go=()=>{if(done)return;done=true;clearInterval(keep);FR.tap=null;FR.post=0;document.body.classList.remove('frpost');frTapHint();if(UI.bambiK===k&&UI.bambi){UI.bambi=null;if(S)renderInfo();}if(typeof bsDrop=='function')bsDrop();res();};
+  document.body.classList.add('frpost');FR.lineKey=key;bambiLine(FR_LINES[key],1e9,'bambi',{hold:1});k=UI.bambiK;FR.tap=go;FR.post=1;frTapHint();keep=setInterval(back,400);});}
+FR.sayOk={tap:0,line:0};
 async function frLost(){busy=true;delete S.inShift;dropDayPlayers();AUD.stingers('lose');sfx('lose');
   if(SPEED>=.05){META.bigLostN=(META.bigLostN||0)+1;saveMeta();}
   R=null;S.shift=0;S.phase='floor';S.offer=null;S.rr=0;coolHeat();
@@ -42381,7 +42498,7 @@ const BG_LINE='"Something for your pocket, sugar. Pick one."';
 // (the first run's thank-you line, "Charlie never saw it coming...", is gone: she gives it in the alley with her own line, 99zp-frend.js)
 const BG_THANKS=BG_LINE;
 // what each one does at Pick Five, in one line
-const BG_D={stacked:'Tap a card: your next 3 cards are its suit.',camera:'See the next 5 cards until you leave.',acehole:'A spare Ace joins your hand at this table.',
+const BG_D={stacked:'Tap a card: your next 3 cards are its suit.',camera:'See the next 5 cards until you leave.',acehole:'Pick Five: a spare Ace. Blackjack: a card becomes an Ace.',
   misdeal:'Trade your whole hand for a fresh one.',mucker:'Draw 2 extra cards.',skip:'Burn the next card. At craps: a bad roll is rethrown.',deuces:'2s are wild for your next 5 hands.'};
 const BG={open:0};
 const bgPool=()=>BG_POOL.filter(id=>TRICKS[id]&&!TRICKS[id].rare&&fitsT(TRICKS[id].tb,'poker'));
@@ -43170,7 +43287,7 @@ function mnLot(){if(!mnOn()||S.phase!='shop'||UI.shopView)return;const m=mnS();
   if(S.flags.fr&&S.flags.frLimit)return;
   if((mnDue()||mnAlleyDue())&&!META.mnMet&&!m.hint&&!DRY){m.hint=1;let n=0;const go=()=>{if(!S||S.phase!='shop'||UI.shopView=='booth'||META.mnMet)return;
       if((UI.bambi||(typeof BSTG!='undefined'&&BSTG.on))&&n++<30)return setTimeout(go,500);
-      bambiLine(MN_LINES.bambi,8000);const d=$('#toBooth');if(d&&typeof glintAt=='function')glintAt(d);};setTimeout(go,1400);}}
+      m.hintSaid=1;bambiLine(MN_LINES.bambi,8000);const d=$('#toBooth');if(d&&typeof glintAt=='function')glintAt(d);};setTimeout(go,1400);}}
 
 // the first run's alley tour (99zp-frend.js, after this file): after Mickey's Card Room, Bambi lights Pops's door
 setTimeout(()=>{try{if(typeof FRA_STOPS!='undefined'&&!FRA_STOPS.some(x=>x[0]=='aBooth')){FR_LINES.aBooth=MN_LINES.bambi;FRA_STOPS.unshift(['aBooth','#toBooth']);}}catch(e){console.error(e);}},0);
@@ -43311,11 +43428,24 @@ function cdYours(ms){UI.deckNow=Date.now()+ms;try{renderRows();}catch(e){}setTim
 // this put the next line at the screen's right edge, and her stage's fit (99zf bsFit, every 150 ms) moved it back clear
 // of the stalls a moment later. The fit alone places it now: it keeps every stall, card and button clear)
 function fraSay(k,right){return frSayOk(k);}
-// the skip in the corner: it ends the tour (the gift still comes)
-function fraSkipBtn(on){let b=document.getElementById('frSkip');if(!on){if(b&&b.dataset.alley)b.remove();return;}if(b)return;
+// the skip in the corner: it ends the tour (the gift still comes), from her first line to her last, on every screen.
+// (2026-10-21: a phone was left without one: a Skip already in the corner (another script's, on its way out) was taken
+// as the tour's own, then went with its script. Now a Skip that isn't the tour's is swapped for the tour's, and while
+// the tour runs it's put back if anything takes it)
+function fraSkipBtn(on){let b=document.getElementById('frSkip');if(!on){clearInterval(FRA.skipKeep);FRA.skipKeep=0;if(b&&b.dataset.alley)b.remove();return;}
+  if(!FRA.skipKeep)FRA.skipKeep=setInterval(()=>{if(!FRA.on)return fraSkipBtn(false);if(!document.querySelector('#frSkip[data-alley]'))fraSkipBtn(true);},300);
+  if(b&&b.dataset.alley)return;if(b)b.remove();
   b=document.createElement('button');b.id='frSkip';b.dataset.alley=1;b.className='btn sm';b.type='button';b.innerHTML='Skip<span class="s">the tour</span>';b.title='Skip the tour';
-  b.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();sfx('card');const T=FRA.on;if(T){T.skip=1;if(FR.tap)FR.tap();}});document.body.appendChild(b);}
-async function frAlleyTour(){if(!frTourDue()||S.phase!='shop')return;const T=FRA.on={skip:0,lit:[],missing:[]};FRA.log=[];
+  b.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();sfx('card');const T=FRA.on;if(T)fraStop(T,'skip');});document.body.appendChild(b);}
+// Skip, or the lock's safety release (01d-scriptlock.js): she stops where she is (her OK taken, Pops' booth lines put
+// away); if her script hasn't wrapped up a moment later (it died, or waits on something gone), it's wrapped up for her.
+// (Her gift's pop-up, if it's up, is still yours to pick from)
+function fraStop(T,why){if(!T||FRA.on!==T)return;const first=!T.skip;T.skip=1;FRA.log.push({k:why,at:Math.round(performance.now())});
+  try{if(UI.mnTour!=null&&typeof mnTourEnd=='function')mnTourEnd();}catch(e){}
+  if(FR.tap)try{FR.tap();}catch(e){}
+  if(first||why=='rescue')setTimeout(function chk(){if(FRA.on!==T)return;if(typeof BG!='undefined'&&BG.open)return setTimeout(chk,500);
+    console.warn('alley tour: wrapped up after '+why);try{if(T.room&&S&&UI.shopView=='room')goRoom(null);}catch(e){}fraDone(T);},1500);}
+async function frAlleyTour(){if(!frTourDue()||S.phase!='shop'||FRA.on)return;const T=FRA.on={skip:0,lit:[],missing:[]};FRA.log=[];
   const log=k=>FRA.log.push({k,at:Math.round(performance.now()),ph:S.phase});
   try{busy=true;fraSkipBtn(true);
     if(!T.skip){log('alley1');await frSayOk('alley1');}
@@ -43325,11 +43455,15 @@ async function frAlleyTour(){if(!frTourDue()||S.phase!='shop')return;const T=FRA
       // after the Bar (crew) and the Fixer (gear), the last of the two stops: nothing you can't seat is lost. Her light on Your Crew, where the bench and kit live
       if(k=='aFixer'&&!T.skip){UI.luSpot=1;try{renderRows();}catch(e){}T.lit.push('bench');for(const b of ['bench1','bench2']){if(T.skip)break;log(b);await fraSay(b,1);}UI.luSpot=0;try{renderRows();}catch(e){}}}
   }catch(e){console.error('frAlleyTour',e);}
-  UI.luSpot=0;$$('.frspot').forEach(e=>e.classList.remove('frspot'));fraSkipBtn(false);busy=false;
+  UI.luSpot=0;$$('.frspot').forEach(e=>e.classList.remove('frspot'));busy=false;
   // her gift, in the alley (the first run's thank-you line is gone: her own line, 99zk-bgift.js)
   try{log('gift');if(!S.flags.bgift)await bambiGift('door');}catch(e){console.error(e);}
-  if(!T.skip&&S&&!S.dead){log('alleyEnd');busy=true;await frSayOk('alleyEnd');busy=false;}
-  S.flags.frAlley=1;S.flags.frRoomWait=1;FRA.on=null;saveRun();try{render();}catch(e){}}
+  if(!T.skip&&S&&!S.dead&&FRA.on===T){log('alleyEnd');busy=true;await frSayOk('alleyEnd');busy=false;}
+  fraDone(T);}
+// the tour's end (its own, Skip's, or the lock's safety release, 01d-scriptlock.js): the lot is yours
+function fraDone(T){if(FRA.on!==T)return;fraSkipBtn(false);UI.luSpot=0;$$('.frspot').forEach(e=>e.classList.remove('frspot'));
+  if(S&&S.flags){S.flags.frAlley=1;if(!T.room)S.flags.frRoomWait=1;}FRA.on=null;busy=false;if(S){saveRun();try{render();}catch(e){}}}
+SLK.rescue.fra=T=>fraStop(T,'rescue');
 /* ---------- 4. the Card Room stop (Litty 2026-10-19: "its ok to not go to the card room yet...as long as you go the next
  time in back alley") ----------
  The tour is the lot's first visit, before the Card Room opens (99zzj-lotopen.js). The first visit it's open (the first
@@ -43341,17 +43475,17 @@ FR_LINES.aRoom='"Mickey makes cards behave. For a price."';
 const frRoomDue=()=>!!(S&&S.flags&&S.flags.fr&&S.flags.frLimit&&S.flags.frAlley&&S.flags.frRoomWait&&!S.flags.frRoom&&!S.practice&&!S.dead&&S.phase=='shop'&&typeof lotHas=='function'&&lotHas('cards'));
 const FRA_W=ms=>new Promise(r=>setTimeout(r,ms));
 async function frRoomStop(){const el=$('#toRoom');if(!el||!frRoomDue()||FRA.on||DRY||SPEED<.05)return false;
-  S.flags.frRoom=1;saveRun();FRA.on={skip:0,lit:['aRoom'],missing:[],room:1};FRA.log=[];const log=k=>FRA.log.push({k,at:Math.round(performance.now()),ph:S.phase});
-  try{busy=true;try{if(typeof T2!='undefined'&&T2.cur)t2Hide(true);}catch(e){}el.classList.add('frspot');try{el.scrollIntoView({block:'nearest',inline:'nearest',behavior:reduceMotion()?'auto':'smooth'});}catch(e){}sfx('prGlint');log('aRoom');
-    await frSayOk('aRoom');el.classList.remove('frspot');
-    // in, to Mickey: his line and his free job (the room's only shelf till it's done)
-    if(S&&S.phase=='shop'&&!S.dead){busy=false;goRoom('room');log('roomIn');
+  S.flags.frRoom=1;saveRun();const T=FRA.on={skip:0,lit:['aRoom'],missing:[],room:1};FRA.log=[];const log=k=>FRA.log.push({k,at:Math.round(performance.now()),ph:S.phase});
+  try{busy=true;fraSkipBtn(true);try{if(typeof T2!='undefined'&&T2.cur)t2Hide(true);}catch(e){}el.classList.add('frspot');try{el.scrollIntoView({block:'nearest',inline:'nearest',behavior:reduceMotion()?'auto':'smooth'});}catch(e){}sfx('prGlint');log('aRoom');
+    await frSayOk('aRoom');el.classList.remove('frspot');fraSkipBtn(false);
+    // in, to Mickey: his line and his free job (the room's only shelf till it's done; the lock is off in there, busy is)
+    if(S&&S.phase=='shop'&&!S.dead&&!T.skip&&FRA.on===T){busy=false;goRoom('room');log('roomIn');
       const live=()=>S&&S.phase=='shop'&&UI.shopView=='room',t0=performance.now();
       if(typeof teach=='function')teach('l_mickey',FR_LINES.mickey,{meta:1,script:1,ms:9000,who:'mickey'});
       while(live()&&(mickeyOpen()||mickeyJob.on||!$('#ov').hidden)&&performance.now()-t0<600000)await FRA_W(150);
       if(live()){await FRA_W(1200);if(live()){if(typeof teachClear=='function')teachClear('l_mickey');goRoom(null);log('roomOut');}}}
   }catch(e){console.error('frRoomStop',e);}
-  $$('.frspot').forEach(e=>e.classList.remove('frspot'));busy=false;FRA.on=null;if(S)saveRun();return true;}
+  $$('.frspot').forEach(e=>e.classList.remove('frspot'));fraSkipBtn(false);if(FRA.on===T){busy=false;FRA.on=null;}if(S)saveRun();return true;}
 // a beat after the lot draws, once nothing else is up
 function frRoomGo(){FRA.roomT=0;if(!frRoomDue()||UI.shopView)return;
   if(FRA.on||busy||!$('#ov').hidden||(typeof BG!='undefined'&&BG.open)||(typeof CM!='undefined'&&CM.on)){FRA.roomT=setTimeout(frRoomGo,400);return;}
@@ -43360,7 +43494,7 @@ function frRoomGo(){FRA.roomT=0;if(!frRoomDue()||UI.shopView)return;
 
 {const sw=shiftWon;shiftWon=async function(){const v=await sw.apply(this,arguments);try{if(frTourDue()&&S.phase=='shop'){if(SPEED<.05||DRY)S.flags.frAlley=1;else await frAlleyTour();}}catch(e){console.error(e);busy=false;}return v;};}
 
-setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{CD_LINE,FRA,FRA_STOPS,frTourDue,frAlleyTour,cdMoment,frRoomDue,frRoomStop});},0);
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{CD_LINE,FRA,FRA_STOPS,frTourDue,frAlleyTour,fraDone,fraStop,fraSkipBtn,cdMoment,frRoomDue,frRoomStop});},0);
 
 // ===== 99zr-replay.js
 /* ================= replay: Save and quit between casinos, and difficulty stickers =================
@@ -43719,7 +43853,9 @@ function woRulesOff(){const W0=WO.on||WO.last;if(!W0||!W0.rulesK)return;if(W0.ru
 function woSettled(r){return !!(r&&r.sessPlays>=1&&!(r.t=='craps'&&r.cr&&r.cr.phase=='point'));}
 
 /* ---------- Skip, top right (the first run's corner button) ---------- */
-function woSkipBtn(on){let b=document.getElementById('frSkip');if(!on){if(b&&b.dataset.walk)b.remove();return;}if(b)return;
+// (2026-10-21: a Skip already in the corner that isn't the walk's, on its way out with its own script, is swapped for the
+// walk's: taking it as the walk's own left a phone with none, 99zp-frend.js)
+function woSkipBtn(on){let b=document.getElementById('frSkip');if(!on){if(b&&b.dataset.walk)b.remove();return;}if(b&&b.dataset.walk)return;if(b)b.remove();
   b=document.createElement('button');b.id='frSkip';b.dataset.walk=1;b.className='btn sm';b.type='button';b.innerHTML='Skip<span class="s">the walk</span>';b.title='Skip the walk';
   b.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();sfx('card');woSkip();});document.body.appendChild(b);}
 function woSkip(){const W0=WO.on;if(!W0)return;W0.skip=1;woEnd('skip');}
@@ -44155,7 +44291,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{tbNeed,tbQu
       "Three and four on top. That's a 7." (OK)
    6. "Want to try? Practice roll, nothing on it. Tap the felt." One practice roll: the meter as usual, no bet, no
       Nerve, no Heat, no roll counted (33c-crthrow.js CTM.freeRoll).
-   7. the result ("Perfect. That's a 7." / "That throw was Good, not Perfect. Each die had a 50/50 shot." / "Missed. Anybody's roll.") with
+   7. the result ("Perfect. That's a 7." / "Good, not Perfect. One die landed, one slipped a side." / "Missed. Anybody's roll.") with
       Keep practicing (another practice roll, as many as you like) and Play for real (the end).
    8. after Play for real, with the side bets showing (the default, Litty 2026-10-16): Fewer bets lit, "Too busy? Fewer
       bets hides the long shots." (OK). Then "Ike's Dice Room out back sells loaded dice." (In the walk-over its own
@@ -44166,7 +44302,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{tbNeed,tbQu
 const CD_LINES={cdIn:'"Craps. The only game where your hands do the work."',cdMeter:'"This is your throwing meter."',cdShow:'"I\'ll show you."',
   cdNail:'"Nail both, and the dice land on the faces you set."',cdSet:'"Before each throw, set your dice. Like this."',
   cdSeven:'"{A} and {b} on top. That\'s {an} {n}."',cdTry:'"Want to try? Practice roll, nothing on it. Tap the felt."',
-  cdAgain:'"Set your dice, then press anywhere."',cdP:'"Perfect. That\'s {an} {n}."',cdG:'"That throw was Good, not Perfect. Each die had a 50/50 shot."',
+  cdAgain:'"Set your dice, then press anywhere."',cdP:'"Perfect. That\'s {an} {n}."',cdG:'"Good, not Perfect. One die landed, one slipped a side."',
   cdX:'"Missed. Anybody\'s roll."',cdAlley:'"Ike\'s Dice Room out back sells loaded dice."',
   cdFewer:'"Too busy? Fewer bets hides the long shots."'};
 // (her lines sit with the first run's, so the line rules check them: tools/tfirstrun.js)
@@ -44307,7 +44443,7 @@ setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{CD,CD_LINES
  After the meter's last press (33c-crthrow.js), before the dice leave:
  1. Two streaks fly from the meter's marks into your dice: power's from its mark, accuracy's from the START line, each in its
     own grade's color (gold Perfect, green Good, red a miss). Where they hit, a ring, and your dice glow the color of what
-    lands (gold your set, green your set half the time, red a random roll).
+    lands (gold your set, green one die your set, one a side off, red a random roll).
  2. Your hand (the rail hands' painted hand, 97t rhSrc: your skin, sleeve and Flair) comes in, scoops the dice into a
     glowing fist, cocks back and throws. The dice leave the fist and tumble as always (CRT.throwDice: the same physics and
     resting spots; the two start a little closer together, inside the fist); they carry the glow a moment.
@@ -45967,9 +46103,12 @@ function lotSay(k){if(!S||S.practice||DRY||SPEED<.05)return;
     // (the first run's Card Room stop, 99zp-frend.js frRoomStop: she waits it out, however long the job takes)
     if((typeof FRA!='undefined'&&FRA.on&&FRA.on.room)||(typeof frRoomDue=='function'&&frRoomDue())){setTimeout(go,500);return;}
     if(UI.shopView||busy||UI.bambi||!$('#ov').hidden||(typeof BSTG!='undefined'&&BSTG.on)||(typeof FRA!='undefined'&&FRA.on)){if(n++<60)setTimeout(go,500);return;}
+    // (2026-10-21: Bambi's first word on Pops (99zo-mentor.js, MN_LINES.bambi) goes first; then this line drops its own Pops bit)
+    const mm=S.mentor,popsHi=k==1&&mm&&mm.hint&&!META.mnMet;if(popsHi&&!mm.hintSaid){if(n++<60)setTimeout(go,500);return;}
     const T=META.lotTaught||{},first=!T[k]&&!META.tipsOff;
     if(!T[k]&&!META.tipsOff){META.lotTaught=Object.assign({},T,{[k]:1});saveMeta();}
-    bambiLine(LOT_LINES[k][first?0:1],first?8000:5000);
+    let line=LOT_LINES[k][first?0:1];if(popsHi)line=line.replace(' Pops is in the back.','');
+    bambiLine(line,first?8000:5000);
     try{if(typeof glintAt=='function')for(const q of LOT_GLINT[k]||[]){const el=$(q);if(el)glintAt(el);}}catch(e){}};
   setTimeout(go,2000);}   // (after Pops: his lines in the lot start at 0.9 to 1.4 s, 99zo-mentor.js)
 // a new visit is counted the moment the lot is drawn (first, before the first run's Mickey and Pops look at it)
@@ -46364,6 +46503,133 @@ const sdLbSw=()=>{try{const b=R.b6;return !!b&&!sdBig()&&mnMoveOK()&&mnOn1('late
 const SD_POPS='Saved the good ones for the Don\'s place. Cash only.';
 {const s0=mnShopTabHTML;mnShopTabHTML=function(){const h=s0.apply(this,arguments);try{if(mnByFilt(mnShopList()).some(id=>MN_MOVES[id].sd))return h.replace(`"${MN_LINES.cash}"`,`"${SD_POPS}"`);}catch(e){console.error(e);}return h;};}
 setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{SD_IDS,SD_POPS,sdGlimNow,sdRdNow,sdRdN,sdLbSoon,sdLbNow,sdUse,sdExtraHTML,sdGlimSw,sdLbSw,mnSdLock,MN_SD_CI});},0);
+
+// ===== 99zzl-acehole.js
+/* ================= Ace in the Hole at blackjack, and the blackjack Big Game's result line (Litty 2026-10-21) =================
+ 1. Litty: "cant this work at blackjack? like a sleeve card?" The pocket trick works at 21 ('bj') and High-Roller 21
+    ('bj21') too, not Hold'em. On your turn, tap one of your cards and use it: that card becomes an Ace (a house Ace, its
+    suit kept; your deck card is untouched). One use, its heat and the meter as every pocket trick at 21 (applyTrick).
+    No card picked: it arms, "Tap a card", the way the Stacked Deck does (99zi-stacked.js); a second tap on the trick,
+    Esc or a tap elsewhere backs out and nothing is spent. After it: 21 stands, two cards to 21 is a blackjack (not on a
+    split hand), over 21 (a Chip card made an Ace) is a bust, as the sleeve swap does at each table (B21E.touched).
+    The table's trick (BJ.trick / B21.trick) swaps the card; what the hand does next waits for the meter, the heat and
+    the dust (ahAfter). R.ahArm: armed; R.ahPick: the card's id, until the trick has run; R.ahDone: the swap happened.
+ 2. Litty saw "20 each. The Horseshoe makes it a win!" and TAKE THE WIN while Ivan's 21 beat her 20 for the game. In a
+    blackjack Big Game the felt's main line says the game ("Ivan's 21 beats your 20."), the dealer's note sits under it
+    (msub), and the Cap moment's button says who takes it ("Ivan takes game 1", "You take game 1", "Game 1 replays",
+    "You win the Big Game"). bjSerCall reads it the way SER_T.bj.decide will (61j-sertie.js): blackjack, then the higher
+    total, a bust last; the same hand goes to more chips, and no chips either side replays. */
+const AH_HAND={bj:'#bjP',bj21:'#tin .b21seat.me .b21cs'};
+const AH_LINE='Tap a card to make it an Ace.';
+// your turn at 21 or High-Roller 21: the hand you're playing, else null
+function ahHand(){if(!S||S.phase!='play'||!R)return null;
+  if(R.t=='bj'&&R.bj){const b=R.bj;return b.phase=='act'&&!b.cm&&b.p.length?b.p:null;}
+  if(R.t=='bj21'&&R.b21){const b=R.b21,e=b.e;if(!e||b.over||b.ready||e.phase!='play'||B21E.who(e)!==B21_ME)return null;const h=B21E.cur(e);return h&&!h.done?h.c:null;}
+  return null;}
+const ahHere=()=>!!ahHand();
+// the card you picked at the table (the sleeve swap's pick)
+const ahSel=()=>{const h=ahHand();if(!h)return null;const id=R.t=='bj'?UI.bjSel:R.b21.sel;return id!=null&&h.some(c=>c.id==id)?id:null;};
+const ahIdx=()=>S.cons.findIndex(c=>c&&c.k=='trick'&&c.id=='acehole');
+// (21's line while you play is its own status, "You have 15, ...": BJ.status says it there; High-Roller 21's is b.msg)
+const ahMsgO=()=>R&&R.t=='bj21'?R.b21:null;
+function ahArm(){R.ahArm=1;R.ahPick=null;const m=ahMsgO();if(m&&m.msg!==AH_LINE){m.ahMsg0=m.msg;m.msg=AH_LINE;}$('#app').classList.add('aharm');sfx('card');
+  if(typeof PH!='undefined'&&PH.sheet&&typeof phCheat=='function')setTimeout(()=>phCheat(false),0);if(typeof PH!='undefined'&&PH.open&&typeof phDrawer=='function')setTimeout(()=>phDrawer(false),0);
+  if(SPEED>=.05)toast('Tap a card.',1600);render();}
+function ahOff(rd=true){$('#app').classList.remove('aharm');if(!R||!R.ahArm)return false;R.ahArm=0;const m=ahMsgO();if(m&&m.msg==AH_LINE)m.msg=m.ahMsg0||'';if(rd)render();return true;}
+// the table's half: that card is an Ace now. → true when it swapped (the trick is spent either way once the meter is clean)
+function ahSwap(hand,id){const i=hand.findIndex(c=>c.id==id);if(i<0)return null;const c=hand[i];
+  const a={id:uid(),r:14,s:c.s&&SUITS.includes(c.s)?c.s:pick(SUITS),house:1,fresh:1,cnt:1};hand[i]=a;R.ahDone={t:R.t,from:cardName(c)};sfx('flip');return a;}
+// after the trick (the meter, the heat): what the hand does with its Ace, as the sleeve swap does at each table
+async function ahAfter(d){const r=R;if(!r||S.dead)return;
+  // (a beat for the gold dust to leave before the dealer moves; the table's buttons wait it out)
+  r.ahWait=1;try{if(SPEED>=.05&&!DRY)await sleep(380);}finally{r.ahWait=0;}if(R!==r||S.dead||S.phase!='play')return;
+  if(d.t=='bj'&&R.bj){const b=R.bj;if(b.phase!='act')return;const t=pTot(b.p);if(t<21){busy=false;render();return;}
+    busy=true;
+    if(t>21){if(b.split)return BJ.nextHand('bust');BJ.reveal(b.d[1]);b.phase='done';b.msg=`Bust with ${t}.`;render();return BJ.lose();}
+    if(b.split)return BJ.nextHand('stand');
+    if(b.p.length==2){BJ.reveal(b.d[1]);b.phase='done';b.msg='<b>Blackjack!</b> Nobody saw a thing.';dealerSay('Blackjack! Nice hand.');crowd('cheer',.65);render();return BJ.win('bj');}
+    return BJ.stand(true);}
+  if(d.t=='bj21'&&R.b21){const b=R.b21,e=b.e;if(e.phase!='play'||B21E.who(e)!==B21_ME)return;const h=B21E.cur(e);if(!h)return;
+    const t=bjTotal(h.c).t;B21E.touched(e,h);b.msg=t>21?'Over 21: a bust.':t==21&&B21E.natural(h)?'<b>Blackjack.</b> Nobody saw a thing.':`You have <b>${t}</b>.`;
+    if(B21E.who(e)!==B21_ME||e.phase!='play')return B21.run();busy=false;render();}}
+// the tables' trick hooks (31-bj.js BJ.trickBlocked/trick, 38j-bj21.js B21's)
+{const tb0=BJ.trickBlocked,t0=BJ.trick;
+  BJ.trickBlocked=function(id){if(id=='acehole')return R.bj&&R.bj.phase=='act'&&!R.bj.cm?'':'On your turn';return tb0.apply(this,arguments);};
+  BJ.trick=async function(id){if(id!='acehole')return t0.apply(this,arguments);const b=R.bj,pk=R.ahPick!=null?R.ahPick:UI.bjSel;
+    if(b.phase!='act'||!ahSwap(b.p,pk)){toast('Tap one of your cards first.');return false;}UI.bjSel=null;render();return true;};}
+{const tb0=B21.trickBlocked,t0=B21.trick;
+  B21.trickBlocked=function(id){if(id=='acehole'){const w=tb0.apply(this,arguments);if(w)return w;const b=R.b21,e=b.e;return e.phase=='play'&&B21E.who(e)===B21_ME&&B21E.cur(e)?'':'On your turn';}return tb0.apply(this,arguments);};
+  B21.trick=async function(id){if(id!='acehole')return t0.apply(this,arguments);const b=R.b21,e=b.e,h=B21E.cur(e),pk=R.ahPick!=null?R.ahPick:b.sel;
+    const a=h&&ahSwap(h.c,pk);if(!a){toast('Tap one of your cards first.');return false;}b.fresh.add(a.id);b.sel=null;render();return true;};}
+// the hand's buttons wait out the beat after the trick
+for(const [T,ks] of [[BJ,['hit','stand','double','doSplit','swap']],[B21,['act','swap']]])for(const k of ks){const f0=T[k];T[k]=function(){if(R&&R.ahWait)return;return f0.apply(this,arguments);};}
+// every way in (the CHEAT box's pocket button, Use under the pocket item, the phone's drawer): no card picked arms it
+{const u0=useCons;useCons=async function(i){const c=S&&S.cons[i];
+  if(!(c&&c.k=='trick'&&c.id=='acehole'&&R&&(R.t=='bj'||R.t=='bj21')))return u0.apply(this,arguments);
+  if(!ahHere()||busy)return false;
+  if(R.ahPick==null){const sel=ahSel();if(sel==null){if(R.ahArm){ahOff();sfx('card');return false;}
+      if(meterHere()&&typeof nvCan=='function'&&!nvCan('acehole')){nvNo('acehole');return false;}ahArm();return false;}
+    R.ahPick=sel;}
+  ahOff(false);const r=R;r.ahDone=null;let ok=false;
+  try{ok=await u0.apply(this,arguments);}finally{r.ahPick=null;}
+  const d=r.ahDone;r.ahDone=null;if(ok&&d&&R===r&&!S.dead)ahAfter(d).catch(e=>console.error(e));else if(R===r&&!S.dead&&S.phase=='play')render();
+  return ok;};}
+// the card you tap while it's armed: that one (before the table's own pick sees the tap)
+function ahTap(id){const h=ahHand();if(!R||!R.ahArm||!h||!h.some(c=>c.id==id))return false;const i=ahIdx();ahOff(false);if(i<0){render();return false;}
+  R.ahPick=id;sfx('card');useCons(i).then(()=>{if(R)R.ahPick=null;try{renderRows();saveRun();}catch(e){}});return true;}
+let AH_EAT=0;
+document.addEventListener('pointerdown',e=>{if(!S||!R||!R.ahArm)return;const t=e.target;if(!t||!t.closest)return;const q=AH_HAND[R.t],el=q&&t.closest(q+' .card');
+  if(el){e.stopImmediatePropagation();e.preventDefault();AH_EAT=performance.now();if(!busy)ahTap(+el.dataset.id);return;}
+  if(t.closest('#cheatPanel,#cheatSheet,#aCheat,#ov,#rows,#pkUse,#cmeter,#phDrawer'))return;if(t.closest('#app'))ahOff();},true);
+document.addEventListener('click',e=>{if(performance.now()-AH_EAT<600&&e.target&&e.target.closest&&R&&AH_HAND[R.t]&&e.target.closest(AH_HAND[R.t]+' .card')){e.stopImmediatePropagation();e.preventDefault();}},true);
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&R&&R.ahArm){const o=$('#ov');if(o&&!o.hidden)return;ahOff();sfx('card');}},true);
+// your turn ends, a new hand, a new table: the arm goes
+{const r0=render;render=function(){if(R&&R.ahArm&&!ahHere()){R.ahArm=0;const m=ahMsgO();if(m&&m.msg==AH_LINE)m.msg=m.ahMsg0||'';}if(!(R&&R.ahArm))$('#app').classList.remove('aharm');return r0.apply(this,arguments);};}
+// the CHEAT box's Ace in the Hole says so while it's armed
+{const a0=renderActions;renderActions=function(){const v=a0.apply(this,arguments);try{const on=!!(R&&R.ahArm);
+    for(const b of $$('#cheatPanel [data-pi][data-id=acehole]')){b.classList.toggle('arm',on);const s=b.querySelector('.cps');if(on&&s)s.textContent='Tap a card';}}catch(e){}return v;};}
+// the camera (the meter's pressure ladder) and the dust look at the card you picked
+{const q0=prTrickQ;prTrickQ=function(x){if(x&&x.k=='cons'&&x.id=='acehole'&&R&&R.ahPick!=null&&(R.t=='bj'||R.t=='bj21'))return `#tin .card[data-id="${R.ahPick}"]`;return q0.apply(this,arguments);};}
+TRAIL.acehole={at:C=>{const n=trNew(C.b4);return n[n.length-1]||trQ(R&&R.t=='bj'?'#bjP':R&&R.t=='bj21'?'#tin .b21seat.me .b21cs':'#pkHand');},lb:()=>R&&(R.t=='bj'||R.t=='bj21')?'Now an Ace':'Ace in your hand'};
+
+/* ---------- the blackjack Big Game: the felt and the button say the game ---------- */
+// → {r: 'W' | 'L' | 'T' | null (not known yet), why} for the hand on the felt, or null (no Big Game, no result yet)
+function bjSerCall(){const s=R&&R.ser,b=R&&R.bj;if(!s||s.t!='bj'||R.t!='bj'||!b)return null;const h=s.his;if(!h||!h.p||!h.p.length||!b.p||!b.p.length)return null;
+  const hands=(b.done&&b.done.length?b.done.map(x=>x.p):[]).concat(b.p.length?[b.p]:[]),split=!!b.split||hands.length>1;
+  const rk=(p,sp)=>{const t=pTot(p);return t>21?0:p.length==2&&t==21&&!sp?23:t;},nm=v=>v==23?'blackjack':v==0?'a bust':String(v);
+  const a=Math.max(0,...hands.map(p=>rk(p,split))),W=serWhoC(),P=serPos();
+  const dBJ=S21.dealerBJ(),hisNat=h.p.length==2&&bjTotal(h.p).t==21,hisDone=!!h.done||dBJ||hisNat;
+  if(!hisDone)return a==23?{r:'W',why:`Your blackjack. ${W} can't top it.`}:{r:null,why:`${W} plays ${P} hand next.`};
+  const c=rk(h.p,false);
+  if(a!=c){if(!a)return {r:'L',why:`You bust. ${W} doesn't.`};if(!c)return {r:'W',why:`${W} busts. You don't.`};
+    return a>c?{r:'W',why:`Your ${nm(a)} beats ${P} ${nm(c)}.`}:{r:'L',why:`${W}'s ${nm(c)} beats your ${nm(a)}.`};}
+  // the same hand: more chips takes it (a win against the dealer wins chips); nobody won any: it's played again
+  const dt=bjTotal(b.d).t,alive=hands.some(p=>pTot(p)<=21)||c>0,dFin=dBJ||dt>=17||!alive||(a==23&&c==23);
+  const both=a==23?'Both blackjack.':a==0?'Both bust.':`Both ${a}.`;
+  if(!dFin)return {r:null,why:`${both} More chips takes it.`};
+  const mine=p=>{const t=pTot(p);if(t>21)return false;const nat=p.length==2&&t==21&&!split;if(dBJ)return nat&&rigOn('horseshoe');if(nat||p.length>=charlieN())return true;return dt>21||t>dt||(t==dt&&rigOn('horseshoe'));};
+  const his=()=>{const t=bjTotal(h.p).t;if(dBJ||t>21)return false;if(hisNat||h.p.length>=5)return true;return dt>21||t>dt;};
+  const mw=hands.some(mine),hw=his();
+  if(!mw&&!hw)return {r:'T',why:`${both} Game ${s.no} replays.`};
+  if(mw&&!hw)return {r:'W',why:`${both} You won chips, ${W} didn't.`};
+  if(!mw&&hw)return {r:'L',why:`${both} ${W} won chips, you didn't.`};
+  const c0=s.cur||{};if(c0.shown&&c0.me>0){const me=Math.round(c0.me),him=Math.round(c0.him||0);
+    return me==him?{r:'T',why:`${both} Same chips. Game ${s.no} replays.`}:me>him?{r:'W',why:`${both} More chips: yours.`}:{r:'L',why:`${both} More chips: ${P}.`};}
+  return {r:null,why:`${both} More chips takes it.`};}
+// the button: who takes it ("Ivan takes game 1"), or the Big Game when this game ends it
+function bjSerBtn(x){const s=R&&R.ser;if(!s||!x||!x.r)return null;const no=s.no;if(x.r=='T')return `Game ${no} replays`;
+  if(x.r=='W')return s.w+1>=s.need?'You win the Big Game':`You take game ${no}`;
+  const save=s.rep>0||S.cons.some(c=>c&&c.k=='trick'&&c.id=='mulligan');return s.l+1>=s.need&&!save?`${serWhoC()} wins the Big Game`:`${serWhoC()} takes game ${no}`;}
+// once a hand has its result line: the game first, the dealer's note under it (kept for the hand: the showdown resets his seat)
+function bjSerNow(){const b=R&&R.bj;if(!b||!R.ser||R.t!='bj')return null;if(b.serCall&&b.serCall.hand===b.serHand)return b.serCall;
+  if(!(b.phase=='done'||b.over)||!b.msg)return null;const x=bjSerCall();if(x&&x.r){x.hand=b.serHand;b.serCall=x;}return x;}
+{const b0=BJ.bet;BJ.bet=async function(){const b=R&&R.bj;if(b&&!busy){b.serCall=null;b.serHand=(b.serHand||0)+1;}return b0.apply(this,arguments);};}
+{const s0=BJ.status;BJ.status=function(){if(R&&R.ahArm&&R.bj&&R.bj.phase=='act')return AH_LINE;const v=s0.apply(this,arguments);try{const b=R.bj;if(!R.ser||b.phase=='act'||!v)return v;const x=bjSerNow();if(!x||!x.why)return v;
+    return `<b class="bjsercall">${x.why}</b>${msub(v)}`;}catch(e){console.error(e);return v;}};}
+{const c0=BJ.cmActions;BJ.cmActions=function(){const h=c0.apply(this,arguments);try{if(!R.ser)return h;const t=bjSerBtn(bjSerNow());if(!t)return h;
+    return h.replace(/(<button class="btn go" id="aCmNo"[^>]*>)(Take the win|Let it go)/,`$1${t}`);}catch(e){console.error(e);return h;}};}
+
+setTimeout(()=>{if(window._v&&window._v.F)Object.assign(window._v.F,{ahHand,ahHere,ahSel,ahArm,ahOff,ahTap,ahAfter,AH_LINE,bjSerCall,bjSerBtn,bjSerNow});},0);
 
 boot();
 })();
